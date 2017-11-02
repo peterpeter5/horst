@@ -11,6 +11,14 @@ class EffectBase:
         return str(self.__repr__()) == str(other.__repr__())
 
 
+class ErrorBase:
+    def __init__(self, reason):
+        self.reason = reason
+
+    def __repr__(self):
+        return "[Error] : [%s] : Reason: %s" % (self.__class__.__name__, self.reason)
+
+
 class CreateFile(EffectBase):
 
     def __init__(self, file_path, content):
@@ -43,3 +51,6 @@ class RunCommand(EffectBase):
 
     def __str__(self):
         return "%s %s" % (self.command, " ".join(map(str, self.arguments)))
+
+
+class

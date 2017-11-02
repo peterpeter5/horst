@@ -1,0 +1,8 @@
+[bumbversion]
+current_version = 0.0.1
+commit = {{commit}}
+tag = {{tag}}
+
+{% for file in files %}
+[bumpversion:file:{{file}}]
+{% endfor%}

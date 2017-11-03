@@ -3,9 +3,14 @@ from functools import wraps, reduce
 
 class _Stage:
 
-    def __init__(self):
+    def __init__(self, name=None):
         self._chain = [self]
         self._tasks = []
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name if self._name is not None else self.__class__.__name__
 
     def __truediv__(self, other):
         if not isinstance(other, _Stage):
@@ -21,7 +26,7 @@ class _Stage:
         return(a for a in self._chain)
     
     def __str__(self):
-        return ".".join((stage.__class__.__name__ for stage in self))
+        return ".".join((stage.name for stage in self))
     
     def register_tasks(self, tasks):
         self._chain[-1]._tasks = tasks
@@ -38,6 +43,7 @@ class Engine:
         def wrapper(*args, **kwargs):
             config = func(*args, **kwargs)
             self._config[func.__name__] = config
+            return config
         
         return wrapper
 
@@ -48,5 +54,20 @@ class Engine:
                 tasks = func(*args, **kwargs)
                 stages.register_tasks(tasks)
                 self._stages[str(stages)] = stages.tasks
+                return tasks
+
             return wrapper
         return _inner
+
+    def get_config_for(self, key):
+        return self._config.get(key, dict())
+
+
+class VirtualEnv(_Stage):
+    pass
+
+
+root = Engine()
+env = VirtualEnv()
+create = VirtualEnv("create")
+update = VirtualEnv("update")

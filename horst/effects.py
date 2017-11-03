@@ -47,10 +47,8 @@ class RunCommand(EffectBase):
         self.arguments = arguments
 
     def __repr__(self):
-        return "[RunCommand] : <%s>" % self.command
+        return "[RunCommand] : <%s>" % str(self)
 
     def __str__(self):
         return "%s %s" % (self.command, " ".join(map(str, self.arguments)))
 
-
-class

@@ -34,7 +34,7 @@ class UpdateFile(EffectBase):
     def __init__(self, file_path, lineno_content):
         self.file_path = file_path
         self.line_and_content = lineno_content
-    
+
     def __repr__(self):
         _, filename = path.split(self.file_path)
         return "[UpdateFile] : <%s> " % filename
@@ -51,4 +51,3 @@ class RunCommand(EffectBase):
 
     def __str__(self):
         return "%s %s" % (self.command, " ".join(map(str, self.arguments)))
-

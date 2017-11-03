@@ -5,7 +5,8 @@ from horst import get_horst
 
 
 def exec_file(filename):
-    exec(compile(open(filename, "rb").read(), filename, 'exec'), globals(), locals())
+    exec(compile(open(filename, "rb").read(),
+                 filename, 'exec'), globals(), locals())
 
 
 @click.group()
@@ -15,10 +16,11 @@ def cli():
 
 @cli.command()
 def tasks():
-    
+
     click.echo("RELEASE")
     horst = get_horst()
     click.echo(str(horst.get_tasks()))
+
 
 class FuncWrapper:
     def __init__(self, name, func):
@@ -32,6 +34,7 @@ class FuncWrapper:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
+
 if __name__ == "__main__":
     current_dir = os.getcwd()
     local_build_file = os.path.join(current_dir, "build.py")
@@ -40,4 +43,4 @@ if __name__ == "__main__":
         for task in get_horst().get_tasks():
             shout_name = functools.partial(print, task)
             cli.command(task)(shout_name)
-    cli() 
+    cli()

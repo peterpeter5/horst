@@ -14,7 +14,8 @@ class _Stage:
 
     def __truediv__(self, other):
         if not isinstance(other, _Stage):
-            raise TypeError("division between %s and %s is not definined" % (self.__class__, other.__class__))
+            raise TypeError("division between %s and %s is not definined" % (
+                self.__class__, other.__class__))
         self._chain.append(other)
         return self
 
@@ -24,10 +25,10 @@ class _Stage:
 
     def __iter__(self):
         return(a for a in self._chain)
-    
+
     def __str__(self):
         return ".".join((stage.name for stage in self))
-    
+
     def register_tasks(self, tasks):
         self._chain[-1]._tasks = tasks
 
@@ -44,7 +45,7 @@ class Engine:
             config = func(*args, **kwargs)
             self._config[func.__name__] = config
             return config
-        
+
         return wrapper
 
     def register(self, stages):

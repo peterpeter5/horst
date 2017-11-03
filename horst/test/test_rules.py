@@ -9,6 +9,7 @@ class A(_Stage):
 class B(_Stage):
     pass
 
+
 class C(_Stage):
     pass
 
@@ -18,13 +19,16 @@ _ab_stage = A() / B()
 _first_stack_stage = A() / B()
 _second_stack_stage = C()
 
+
 @rules.config
 def config_smthng(a, b):
     return [a, b]
 
+
 @rules.register(_ab_stage)
 def put_tasks_on_b():
     return ["b"]
+
 
 @rules.register(_first_stack_stage)
 @rules.register(_second_stack_stage)
@@ -39,7 +43,7 @@ def test_config_function_reslut_is_saved_in_engine():
 
 def test_stage_div_protocol_with_wrong_types():
     with pytest.raises(TypeError):
-        7 / A() 
+        7 / A()
 
 
 def test_stage_div_protocol_and_string_serialization():
@@ -50,14 +54,14 @@ def test_stage_has_name():
     stage_with_class_name = A()
     stage_with_custom_name = _Stage("custom")
     assert stage_with_class_name.name == "A"
-    assert stage_with_custom_name.name == "custom" 
+    assert stage_with_custom_name.name == "custom"
 
 
 def test_stages_can_register_tasks():
     a = A()
     a.register_tasks(["a"])
     assert a._tasks == ["a"]
-    
+
     ab = a / B()
     ab.register_tasks(["a", "b"])
     ab_chain = list(ab)
@@ -68,14 +72,14 @@ def test_stages_can_register_tasks():
 def test_stages_give_a_tasks_chain_when_asked():
     a = A()
     a.register_tasks(["a"])
-    
+
     ab = a / B()
     ab.register_tasks((["a"], ["b"]))
     assert ab.tasks == [
-        ["a"], 
+        ["a"],
         (["a"], ["b"])
     ]
-    
+
 
 def test_rules_register_decorator_puts_config_results_on_stage():
     put_tasks_on_b()

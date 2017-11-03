@@ -24,8 +24,8 @@ def package(name, version):
 class CreateEnv(RunCommand):
 
     def __init__(self, virt_env_path, executable):
-        super(CreateEnv, self).__init__("virtualenv", ("-p %s" % executable, virt_env_path))
-
+        super(CreateEnv, self).__init__("virtualenv",
+                                        ("-p %s" % executable, virt_env_path))
 
     def __repr__(self):
         return str(self)
@@ -36,7 +36,7 @@ class UpdateEnv(RunCommand):
         pip_part = ("bin", "pip") if _is_linux() else ("scripts", "pip")
         self.pip = os.path.join(virt_env_path, *pip_part)
         self.dependencies = dependencies
-        super(UpdateEnv, self).__init__("%s install " % self.pip, dependencies)  
+        super(UpdateEnv, self).__init__("%s install " % self.pip, dependencies)
 
 
 def _is_linux():
@@ -53,7 +53,7 @@ def virtualenv(config=None):
     return config
 
 
-@root.register(env/create)
+@root.register(env / create)
 def _create_environment(virtenv_config):
     env_base_path = os.path.join(get_project_path(), virtenv_config['name'])
     tasks = []
@@ -63,14 +63,15 @@ def _create_environment(virtenv_config):
         check_path = os.path.join(env_base_path, "scripts", "python.exe")
     if not os.path.exists(check_path):
         tasks.append(CreateEnv(env_base_path, virtenv_config['python']))
-    
+
     return tasks
 
 
-@root.register(env/create/update)
+@root.register(env / create / update)
 def _update_environment(deps, virtenv):
     env_base = os.path.join(get_project_path(), virtenv['name'])
-    deps_to_install = reduce(lambda state, deps: state + deps, deps.values(), [])
+    deps_to_install = reduce(
+        lambda state, deps: state + deps, deps.values(), [])
     return [UpdateEnv(env_base, deps_to_install)] if deps_to_install else []
 
 
@@ -89,5 +90,5 @@ def dependencies(install=[], build=[], test=[], versions=[], environment=virtual
 def python_version(py_name, dependencies=[]):
     py_name = py_name.lower()
     if not re.match(r'^py[thon]+\d{,2}', py_name):
-        return WrongPythonInterpreterSpec("Expected someting like: <pyhton36> or <py27>! instead: <%s>" % py_name) 
+        return WrongPythonInterpreterSpec("Expected someting like: <pyhton36> or <py27>! instead: <%s>" % py_name)
     return py_name, dependencies

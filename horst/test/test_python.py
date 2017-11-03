@@ -6,17 +6,18 @@ from ..python import _create_environment, CreateEnv, virtualenv, dependencies, _
 
 here = path.dirname(__file__)
 
+
 @pytest.fixture(autouse=True)
 def delete_horst():
     horst = Horst("")
     horst._invalidate()
-    
+
 
 def test_create_environment_when_no_env_is_present():
     Horst(__file__)
-    tasks = _create_environment({"name": ".env", "python": "python3"}) 
+    tasks = _create_environment({"name": ".env", "python": "python3"})
     assert len(tasks) == 1
-    create_env_task = tasks[0] 
+    create_env_task = tasks[0]
     assert isinstance(create_env_task, CreateEnv)
     project_path = path.join(here, ".env")
     print(here)
@@ -49,6 +50,7 @@ def test_update_environment_returns_empty_when_no_dependencys():
 
 def test_update_environment_returns_pip_install_cmd_when_deps():
     Horst(__file__)
-    pip_install = _update_environment({"install": ["wheel"], "test": ["horst"]}, {"name": ".env"})
+    pip_install = _update_environment(
+        {"install": ["wheel"], "test": ["horst"]}, {"name": ".env"})
     expected_cmd = UpdateEnv(path.join(here, ".env"), ["wheel", "horst"])
     assert pip_install == [expected_cmd]

@@ -6,6 +6,7 @@ import horst.versioning
 Horst(__file__)
 here = path.dirname(__file__)
 
+
 def test_bumpversion_nothing_existing():
     tasks = list(map(lambda x: x.__class__, bumpversion()))
     expected_bump_conf_file = path.join(here, ".bumpversion.conf")
@@ -28,4 +29,4 @@ tag = True
 
 [bumpversion:file:setup.py]
 """.lstrip()
-    assert expected_text == text 
+    assert expected_text == text

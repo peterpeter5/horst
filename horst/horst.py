@@ -1,5 +1,5 @@
 import os
-
+from .rules import root  
 
 class Singleton(type):
     _instances = {}
@@ -23,8 +23,9 @@ class Horst(metaclass=Singleton):
     def register_release(self, commands):
         self.cycle['release'].append(commands)
 
-    def get_tasks(self):
-        return [stage for stage, cmds in self.cycle.items() if cmds]
+    def get_commands(self):
+        return list(root.get_stages().items())
+        # return [stage for stage, cmds in self.cycle.items() if cmds]
 
     def _invalidate(self):
         self.__meta__._instances.pop(self.__class__)

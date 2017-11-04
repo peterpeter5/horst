@@ -48,7 +48,7 @@ class _Route:
         return(a for a in self._chain)
 
     def __str__(self):
-        return ".".join((stage.name for stage in self))
+        return ":".join((stage.name for stage in self))
 
     def register_tasks(self, tasks):
         self._chain[-1]._tasks = tasks
@@ -70,7 +70,6 @@ class Engine:
         return wrapper
 
     def register(self, stages):
-        print("register stage", str(stages))
         def _inner(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -85,8 +84,8 @@ class Engine:
     def get_config_for(self, key):
         return self._config.get(key, dict())
 
-    def get_stage_names(self):
-        return list(self._stages.keys())
+    def get_stages(self):
+        return self._stages
 
 
 class VirtualEnv(_Stage):

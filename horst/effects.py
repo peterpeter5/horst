@@ -1,6 +1,18 @@
 from os import path
 
 
+class DryRun:
+
+    def __init__(self, effect):
+        self._effect = effect
+
+    def __str__(self):
+        return self._effect.__str__()
+
+    def __repr__(self):
+        return self._effect.__repr__()
+
+
 class EffectBase:
 
     def __repr__(self):

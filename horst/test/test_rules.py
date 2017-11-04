@@ -47,11 +47,11 @@ def test_stage_div_protocol_with_wrong_types():
 
 
 def test_stage_div_protocol_and_string_serialization():
-    assert str(A() / B() / B() / A()) == "A.B.B.A"
+    assert str(A() / B() / B() / A()) == "A:B:B:A"
 
 
 def test_preconfigured_stages_with_names_protocol():
-    assert str(env / create / update) == "env.create.update"
+    assert str(env / create / update) == "env:create:update"
 
 def test_stage_has_name():
     stage_with_class_name = A()
@@ -88,7 +88,7 @@ def test_rules_register_decorator_puts_config_results_on_stage():
     put_tasks_on_b()
     expected_tasks = [[], ["b"]]
     assert _ab_stage.tasks == expected_tasks
-    assert rules._stages == {"A.B": expected_tasks}
+    assert rules._stages == {"A:B": expected_tasks}
 
 
 @pytest.mark.xfail

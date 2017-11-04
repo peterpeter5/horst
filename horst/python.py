@@ -85,10 +85,3 @@ def dependencies(install=[], build=[], test=[], versions=[], environment=virtual
     )
     _update_environment(deps, environment)
     return deps
-
-
-def python_version(py_name, dependencies=[]):
-    py_name = py_name.lower()
-    if not re.match(r'^py[thon]+\d{,2}', py_name):
-        return WrongPythonInterpreterSpec("Expected someting like: <pyhton36> or <py27>! instead: <%s>" % py_name)
-    return py_name, dependencies

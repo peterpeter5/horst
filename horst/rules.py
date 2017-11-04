@@ -16,6 +16,27 @@ class _Stage:
         if not isinstance(other, _Stage):
             raise TypeError("division between %s and %s is not definined" % (
                 self.__class__, other.__class__))
+        
+        route = _Route(self)
+        return route / other
+
+    @property
+    def tasks(self):
+        return self._tasks 
+
+    def register_tasks(self, tasks):
+        self._tasks = tasks
+
+
+class _Route:
+
+    def __init__(self, node):
+        self._chain = [node]
+
+    def __truediv__(self, other):
+        if not isinstance(other, _Stage):
+            raise TypeError("division between %s and %s is not definined" % (
+                self.__class__, other.__class__))
         self._chain.append(other)
         return self
 
@@ -49,6 +70,7 @@ class Engine:
         return wrapper
 
     def register(self, stages):
+        print("register stage", str(stages))
         def _inner(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -63,12 +85,15 @@ class Engine:
     def get_config_for(self, key):
         return self._config.get(key, dict())
 
+    def get_stage_names(self):
+        return list(self._stages.keys())
+
 
 class VirtualEnv(_Stage):
     pass
 
 
 root = Engine()
-env = VirtualEnv()
+env = VirtualEnv("env")
 create = VirtualEnv("create")
 update = VirtualEnv("update")

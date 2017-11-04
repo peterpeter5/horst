@@ -1,4 +1,4 @@
-from ..rules import Engine, _Stage
+from ..rules import Engine, _Stage, env, create, update
 import pytest
 
 
@@ -49,6 +49,9 @@ def test_stage_div_protocol_with_wrong_types():
 def test_stage_div_protocol_and_string_serialization():
     assert str(A() / B() / B() / A()) == "A.B.B.A"
 
+
+def test_preconfigured_stages_with_names_protocol():
+    assert str(env / create / update) == "env.create.update"
 
 def test_stage_has_name():
     stage_with_class_name = A()

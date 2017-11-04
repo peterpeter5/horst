@@ -1,6 +1,6 @@
 import click
 import os
-from functools import partial, reduce
+from functools import partial
 from horst import get_horst
 from horst.effects import DryRun 
 from horst.runner.runner import execute_stage
@@ -13,12 +13,20 @@ def exec_file(filename):
 
 class MyCli(click.MultiCommand):
 
-    def list_commands(self, ctx):
-        # print("list command", ctx)
-        return [cmd for cmd, _ in get_horst().get_commands()]
+    static_cmds = ["debug"]
 
+    def list_commands(self, ctx):
+        dynamic_cmds =  [
+            cmd 
+            for cmd, tasks in get_horst().get_commands()
+            if not all(map(lambda x: len(x) == 0, tasks))
+        ]
+        return dynamic_cmds + self.static_cmds
 
     def get_command(self, ctx, name):
+        if name in self.static_cmds:
+            return self.handle_static(ctx, name)
+
         translation = dict(get_horst().get_commands())
         _stage = translation[name]
         stage = [
@@ -30,14 +38,18 @@ class MyCli(click.MultiCommand):
         func = partial(execute_stage, stage, printer=click.echo)
         return click.Command(name, {}, func)
 
+    def handle_static(self, ctx, name):
+        if "debug" == name:
+            return debug
 
-#@click.command(cls=cli)
+@click.command()
 def debug():
+    state = get_horst().get_horst_state()
     print("===== CONFIG =====")
-    print(root._config)
+    print(state['config'])
     print(" = = = = = = = = = ")
     print("===== STAGES =====")
-    print(root._stages)
+    print(state['stages'])
     print("= = = = = = = = = = ")
 
 

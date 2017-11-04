@@ -30,6 +30,12 @@ class Horst(metaclass=Singleton):
     def _invalidate(self):
         self.__meta__._instances.pop(self.__class__)
 
+    def get_horst_state(self):
+        return {
+            'config': root._config,
+            'stages': root._stages,
+    }
+
 
 def get_project_path():
     return Horst("").project_path

@@ -38,6 +38,8 @@ class UpdateEnv(RunCommand):
         self.dependencies = dependencies
         super(UpdateEnv, self).__init__("%s install --upgrade" % self.pip, dependencies)
 
+    def __display__(self):
+        return "pip install %s" % " ".join(self.dependencies)
 
 def _is_linux():
     return os.name == 'posix'

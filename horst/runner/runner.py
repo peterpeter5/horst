@@ -19,7 +19,7 @@ def execute(effect, *args, **kwargs):
 
 @execute.register(DryRun)
 def _(action, printer):
-    return Dry(str(action))
+    return Dry(str(action.__display__()))
 
 
 @execute.register(_NoOp)

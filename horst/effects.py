@@ -12,16 +12,20 @@ class DryRun:
     def __repr__(self):
         return self._effect.__repr__()
 
+    def __display__(self):
+        return self._effect.__display__()
+
 
 class EffectBase:
 
     def __repr__(self):
-
         return self.__class__.__name__
 
     def __eq__(self, other):
         return str(self.__repr__()) == str(other.__repr__())
 
+    def __display__(self):
+        return self.__repr__()
 
 class ErrorBase:
     def __init__(self, reason):

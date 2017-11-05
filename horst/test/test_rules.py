@@ -35,6 +35,10 @@ def put_tasks_on_b():
 def put_tasks_stacked():
     return ["stacked"]
 
+@rules.register(_ab_stage, route="a/c/a/b")
+def tasks_with_custom_route():
+    pass
+
 
 def test_config_function_reslut_is_saved_in_engine():
     config_smthng("a", 2)
@@ -52,6 +56,7 @@ def test_stage_div_protocol_and_string_serialization():
 
 def test_preconfigured_stages_with_names_protocol():
     assert str(env / create / update) == "env:create:update"
+
 
 def test_stage_has_name():
     stage_with_class_name = A()
@@ -88,7 +93,7 @@ def test_rules_register_decorator_puts_config_results_on_stage():
     put_tasks_on_b()
     expected_tasks = [[], ["b"]]
     assert _ab_stage.tasks == expected_tasks
-    assert rules._stages == {"A:B": expected_tasks}
+    assert rules._stages == {"A:B": _ab_stage}
 
 
 @pytest.mark.xfail
@@ -101,3 +106,9 @@ def test_rules_stage_routes_can_be_stacked():
         "A.B": [[], expected_tasks],
         "C": expected_tasks
     }
+
+
+def test_register_can_have_custom_routes():
+    tasks_with_custom_route()
+    actual_stages = list(rules.get_stages().keys())
+    assert "a:c:a:b" in actual_stages

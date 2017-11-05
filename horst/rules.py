@@ -69,13 +69,14 @@ class Engine:
 
         return wrapper
 
-    def register(self, stages):
+    def register(self, stages, route=None):
         def _inner(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
                 tasks = func(*args, **kwargs)
                 stages.register_tasks(tasks)
-                self._stages[str(stages)] = stages.tasks
+                name = str(stages) if route is None else route.replace("/", ":")
+                self._stages[name] = stages
                 return tasks
 
             return wrapper

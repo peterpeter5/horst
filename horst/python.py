@@ -36,7 +36,7 @@ class UpdateEnv(RunCommand):
         pip_part = ("bin", "pip") if _is_linux() else ("scripts", "pip")
         self.pip = os.path.join(virt_env_path, *pip_part)
         self.dependencies = dependencies
-        super(UpdateEnv, self).__init__("%s install " % self.pip, dependencies)
+        super(UpdateEnv, self).__init__("%s install --upgrade" % self.pip, dependencies)
 
 
 def _is_linux():
@@ -69,7 +69,7 @@ def _create_environment(virtenv_config):
 
 @root.register(env / create / update)
 def _update_environment(deps, virtenv):
-    env_base = os.path.join(get_project_path(), virtenv['name'])
+    env_base = os.path.abspath(os.path.join(get_project_path(), virtenv['name']))
     deps_to_install = reduce(
         lambda state, deps: state + deps, deps.values(), [])
     return [UpdateEnv(env_base, deps_to_install)] if deps_to_install else []

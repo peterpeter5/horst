@@ -3,8 +3,8 @@ Horst(__file__)
 
 
 dependencies(
-    install=["jinja2", "bumpversion", "pytest-cov"],
-    test=["pytest", "pytest-cov"],
+    install=["click", "jinja2", "bumpversion", "pytest-cov", "pytest", "virtualenv"],
+    test=[],
     build=[],
     # versions={
     #     "py27": ("singledispatch",)

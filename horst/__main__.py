@@ -4,6 +4,7 @@ from functools import partial
 from horst import get_horst
 from horst.effects import DryRun 
 from horst.runner.runner import execute_stage
+from horst.runner.printer import Printer
 
 
 def exec_file(filename):
@@ -18,24 +19,24 @@ class MyCli(click.MultiCommand):
     def list_commands(self, ctx):
         dynamic_cmds =  [
             cmd 
-            for cmd, tasks in get_horst().get_commands()
-            if not all(map(lambda x: len(x) == 0, tasks))
+            for cmd, stage in get_horst().get_commands().items()
+            if not all(map(lambda x: len(x) == 0, stage.tasks))
         ]
         return dynamic_cmds + self.static_cmds
 
     def get_command(self, ctx, name):
         if name in self.static_cmds:
             return self.handle_static(ctx, name)
-
-        translation = dict(get_horst().get_commands())
+        is_dry_run = ctx.params.get('dry', False)
+        translation = get_horst().get_commands()
         _stage = translation[name]
         stage = [
-            (":".join(name.split(":")[0:num+1]), tasks if not ctx.params.get('dry', False) else list(map(DryRun, tasks)))
-            for num, tasks in enumerate(_stage)
+            (":".join(str(_stage).split(":")[0:num+1]), tasks if not is_dry_run else list(map(DryRun, tasks)))
+            for num, tasks in enumerate(_stage.tasks)
         ]
 
-
-        func = partial(execute_stage, stage, printer=click.echo)
+        gui = Printer(is_dry_run)
+        func = partial(execute_stage, stage, printer=gui)
         return click.Command(name, {}, func)
 
     def handle_static(self, ctx, name):

@@ -16,7 +16,8 @@ class Horst(metaclass=Singleton):
 
     __meta__ = None
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, root_engine=root):
+        self.root = root_engine
         self.project_path = os.path.dirname(file_path)
         self.cycle = {'release': [], 'build': [], "test": [], "check": []}
 
@@ -24,7 +25,7 @@ class Horst(metaclass=Singleton):
         self.cycle['release'].append(commands)
 
     def get_commands(self):
-        return list(root.get_stages().items())
+        return self.root.get_stages()
         # return [stage for stage, cmds in self.cycle.items() if cmds]
 
     def _invalidate(self):
@@ -32,8 +33,8 @@ class Horst(metaclass=Singleton):
 
     def get_horst_state(self):
         return {
-            'config': root._config,
-            'stages': root._stages,
+            'config': self.root._config,
+            'stages': self.root._stages,
     }
 
 

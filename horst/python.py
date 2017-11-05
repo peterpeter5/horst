@@ -67,7 +67,7 @@ def _create_environment(virtenv_config):
     return tasks
 
 
-@root.register(env / create / update)
+@root.register(env / create / update, route="env/update")
 def _update_environment(deps, virtenv):
     env_base = os.path.abspath(os.path.join(get_project_path(), virtenv['name']))
     deps_to_install = reduce(

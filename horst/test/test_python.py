@@ -54,3 +54,8 @@ def test_update_environment_returns_pip_install_cmd_when_deps():
         {"install": ["wheel"], "test": ["horst"]}, {"name": ".env"})
     expected_cmd = UpdateEnv(path.join(here, ".env"), ["wheel", "horst"])
     assert pip_install == [expected_cmd]
+
+
+def test_update_env_cmd():
+    pip_cmd = UpdateEnv("/path/to/env", ["dep1", "dep2", "dep3==2"])
+    assert str(pip_cmd) == "/path/to/env/bin/pip install --upgrade dep1 dep2 dep3==2" 

@@ -54,6 +54,6 @@ def test_get_project_path_is_coupled_to_horst_cycle():
 
 def test_horst_get_commands_returns_cmd_path_and_stage_not_tasks():
     b_conf()
-    horst = Horst("", rule)
+    horst = Horst("", root_engine=rule)
     commands = horst.get_commands()
     assert commands == {"b": a__b}

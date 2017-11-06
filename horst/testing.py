@@ -1,7 +1,19 @@
 from .effects import RunOption
 from functools import partial, reduce
 from itertools import chain
+from .rules import root, integration_test, unittest
+from .rules import test as test_route
+from .horst import get_project_path, get_horst
+from os import path
 
+
+def _make_option_or_empty_list(name, value):
+    return [RunOption(name, value)] if value else [] 
+
+
+
+def flatten(args):
+    return list(chain(*args))
 
 class _LogicalOption(RunOption):
 
@@ -85,7 +97,10 @@ def junit(path=None, prefix=None):
     return report_path + prefix
 
 
-def pytest_coverage(folders=None, report=None, min=None, config=None):
+def pytest_coverage(folders=None, report=[], min=None, config=None, disable=False):
+    if disable:
+        return []
+
     if config is not None:
         if folders or report or min:
             pass  # TODO Error-handling raise error
@@ -99,9 +114,37 @@ def pytest_coverage(folders=None, report=None, min=None, config=None):
     return folders + report + break_on_min
 
 
-def _make_option_or_empty_list(name, value):
-    return [RunOption(name, value)] if value else [] 
+def pytest(folders="", exclude=[], include=[], report=[], coverage=pytest_coverage()):
+    base_path = get_project_path()
+    folders = [get_horst().package_name] if not folders else folders
+    folders = [
+        path.join(base_path, folder)
+        for folder in ([folders] if not isinstance(folders, (list, tuple)) else folders)
+    ]
+    excludes = [ex.invert() for ex in exclude]
+    inclu_exclu_marks, inclu_exclu_names = _join_detection_config(excludes, include)
+    return inclu_exclu_marks + inclu_exclu_names + report + coverage + folders
 
 
-def flatten(args):
-    return list(chain(*args))
+def _join_detection_config(excludes, includes):
+    is_mark = lambda x: isinstance(x, Mark)
+    is_name_pattern = lambda x: isinstance(x, NamePattern)
+    exclude_marks = list(filter(is_mark, excludes))
+    include_makrs = list(filter(is_mark, includes))
+    if include_makrs and exclude_marks:
+        inclu_exclu = [exclude_marks[0] & include_makrs[0]]
+    else:
+        inclu_exclu = include_makrs + exclude_marks
+
+    exclude_names = list(filter(is_name_pattern, excludes))
+    include_names = list(filter(is_name_pattern, includes))
+    if include_names and exclude_names:
+        inclu_exclu_names = [exclude_names[0] & include_names[0]]
+    else:
+        inclu_exclu_names = include_names + exclude_names  
+    return inclu_exclu, inclu_exclu_names
+
+
+@root.config
+def test(unittest=pytest(), integration_test=None):
+    pass

@@ -93,7 +93,15 @@ class VirtualEnv(_Stage):
     pass
 
 
+class Testing(_Stage):
+    pass
+
+
 root = Engine()
 env = VirtualEnv("env")
 create = VirtualEnv("create")
 update = VirtualEnv("update")
+
+test = Testing("test")
+unittest = Testing("unittest")
+integration_test = Testing("integration")

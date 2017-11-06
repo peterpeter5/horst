@@ -1,7 +1,10 @@
 from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit, pytest_coverage
+from ..testing import pytest as pytest_config
 from ..effects import RunOption
+from ..horst import Horst
 from functools import reduce
 import pytest
+from os import path
 
 
 def test_mark_option_serializes_as_expected():
@@ -92,4 +95,33 @@ def test_pytest_coverage_with_full_config():
         RunOption('cov-report', 'html'),
         RunOption('cov-report', 'term'),
         RunOption('cov-fail-under', '96')
+    ]
+
+
+@pytest.fixture(autouse=True)
+def horst():
+    horst = Horst("")
+    horst._invalidate()
+    return Horst(__file__, "package_name")
+
+def test_pytest_without_config(horst):
+    empty_config = pytest_config()
+    package_name = path.join(path.dirname(__file__), "package_name")
+    assert empty_config == ["--cov", package_name]
+
+
+def test_pytest_with_config(horst):
+    config = pytest_config(
+        ["unittest", "test"], 
+        [marked_as("slow"), named("super_slow")], 
+        [not_marked_as("load")], 
+        junit(".junit"), 
+        pytest_coverage(disable=True)
+    )
+    folders = [path.join(path.dirname(__file__), dir_name) for dir_name in ["unittest", "test"]] 
+    assert config == [
+        Mark("slow").invert() & Mark("load").invert(),
+        NamePattern("super_slow").invert(),
+        RunOption("junit-xml", ".junit"),
+        *folders
     ]

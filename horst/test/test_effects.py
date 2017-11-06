@@ -1,4 +1,4 @@
-from ..effects import EffectBase, DryRun, RunOption
+from ..effects import EffectBase, DryRun, RunOption, RunCommand
 
 
 class A(EffectBase):
@@ -47,3 +47,9 @@ def test_run_option_num_of_hyphens_can_be_specified():
 def test_run_option_without_value_is_interpreted_as_switch():
     option = RunOption("f")
     assert "-f" == str(option)
+
+def test_run_option_can_be_combined_with_run_command():
+    option_f = RunOption("f", True)
+    option_r = RunOption("r", hyphens=2)
+    rm_cmd = RunCommand("rm", [option_f, option_r])
+    assert 'rm -f="True" --r' == str(rm_cmd)

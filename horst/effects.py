@@ -79,5 +79,5 @@ class RunOption:
 
     def __str__(self):
         return "-" * self.hyphens + \
-            ('%s="%s"' %(self.name, str(self.value)) if self.value is not None else self.name)
+            ('%s="%s"' % (self.name, str(self.value)) if self.value is not None else self.name)
  

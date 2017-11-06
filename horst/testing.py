@@ -56,9 +56,29 @@ class MarkOptionList(_LogicalOptionList):
     pass
 
 
+class NamePattern(_LogicalOption):
+    def __init__(self, name):
+        super(NamePattern, self).__init__("k", name, hyphens=1)
+
+
+class NamesList(_LogicalOptionList):
+    pass
+
+
 def marked_as(*args):
     return MarkOptionList(map(Mark, args))
 
 
 def not_marked_as(*args):
     return marked_as(*args).invert()
+
+
+def named(*args):
+    return NamesList(map(NamePattern, args))
+
+
+def junit(path=None, prefix=None):
+    report_path = [RunOption("junit-xml", path)] if path else []
+    prefix = [RunOption("junit-prefix", prefix)] if prefix else []
+    #TODO Error-handling: raise  error when (not report_path and prefix)
+    return report_path + prefix

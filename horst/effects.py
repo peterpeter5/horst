@@ -80,4 +80,10 @@ class RunOption:
     def __str__(self):
         return "-" * self.hyphens + \
             ('%s="%s"' % (self.name, str(self.value)) if self.value is not None else self.name)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __repr__(self):
+        return str(self)
  

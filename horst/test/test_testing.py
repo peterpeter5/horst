@@ -1,6 +1,8 @@
-from ..testing import Mark, marked_as, MarkOptionList, not_marked_as
+from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit
+from ..effects import RunOption
 from functools import reduce
 import pytest
+
 
 def test_mark_option_serializes_as_expected():
     slow = Mark("slow")
@@ -65,3 +67,15 @@ def test_complex_markas_example():
     expected_option = '-m="(slow or load) and (not (fast or prio)) or always"'
     assert str(complex_mark) == expected_option
 
+
+def test_namepattern_serializes_as_expected():
+    loadtest = NamePattern("loadtest")
+    assert str(loadtest) == '-k="loadtest"'
+    durability = NamePattern("durability")
+    assert str(loadtest & durability) == '-k="(loadtest) and (durability)"'
+
+
+def test_junit_serializes_as_expected():
+    assert junit() == []
+    assert junit("a") == [RunOption("junit-xml", "a")]
+    assert junit("a", "b") == [RunOption("junit-xml", "a"), RunOption("junit-prefix", "b")]

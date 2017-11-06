@@ -1,4 +1,4 @@
-from ..testing import Mark, marked_as, MarkList, not_marked_as
+from ..testing import Mark, marked_as, MarkOptionList, not_marked_as
 from functools import reduce
 import pytest
 
@@ -26,13 +26,13 @@ def test_mark_options_can_be_used_with_bit_or():
 
 def test_marked_as_reutrns_a_marklist():
     mixed = marked_as("slow", "fast")
-    assert isinstance(mixed, MarkList)
+    assert isinstance(mixed, MarkOptionList)
     assert len(mixed) == 2
 
 
 @pytest.fixture
 def marks():
-    return MarkList([Mark("a"), Mark("b")])
+    return MarkOptionList([Mark("a"), Mark("b")])
 
 
 def test_marklist_list_protocol(marks):
@@ -42,8 +42,8 @@ def test_marklist_list_protocol(marks):
 
 
 def test_marklist_to_mark_returns_or_marks(marks):
-    assert marks.to_mark() == Mark("a") | Mark("b")
-    assert MarkList([Mark("c")]).to_mark() == Mark("c")
+    assert marks.to_option() == Mark("a") | Mark("b")
+    assert MarkOptionList([Mark("c")]).to_option() == Mark("c")
  
 
 def test_marklist_can_be_inverted(marks):
@@ -51,13 +51,13 @@ def test_marklist_can_be_inverted(marks):
 
 
 def test_marklist_can_be_used_with_and(marks):
-    cs = MarkList([Mark("c")])
+    cs = MarkOptionList([Mark("c")])
     assert (cs & marks).value == "(c) and (a or b)"
 
 
 def test_marked_as_returns_marklist_options():
     mixed = marked_as("a", "b")
-    assert mixed == MarkList([Mark("a"), Mark("b")])
+    assert mixed == MarkOptionList([Mark("a"), Mark("b")])
 
 
 def test_complex_markas_example():

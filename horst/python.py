@@ -11,11 +11,6 @@ class Versioning(EffectBase):
         self.commands = commands
 
 
-class WrongPythonInterpreterSpec(ErrorBase):
-    def __init__(self, reason):
-        super(WrongPythonInterpreterSpec, self).__init__(reason)
-
-
 def package(name, version):
     horst = get_horst()
     horst.register_release(Versioning(version))

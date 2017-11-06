@@ -37,3 +37,10 @@ def test_horst_with_minimal_build_py(runner):
         cmd_ouput = result.output.split("Commands:")[-1]
         assert "env" in cmd_ouput
 
+
+def test_horst_debug_tasks_can_be_executed_even_in_empty_dir(runner):
+    with runner.isolated_filesystem() as folder:
+        result = runner.invoke(cli(path.join(folder, "build.py")), ["debug"])
+        assert result.exit_code == 0
+        
+

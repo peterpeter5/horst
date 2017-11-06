@@ -52,6 +52,12 @@ def test_dry_run_env_create_shows_virtualenv_cmd(runner):
         assert "virtualenv" in output
 
 
+def test_dry_run_env_update_shows_pip_install_cmd(runner):
+    with runner.isolated_filesystem() as folder, horst_project(horst_with_dependencies, folder) as build_file:
+        result = runner.invoke(cli(build_file), ["-d", "env:update"])
+        output = get_output_checked(result)
+        assert "pip install" in output
+
 @pytest.mark.slow
 def test_run_env_create_works_like_expected(runner):
     with no_virtaul_env_present(runner) as build_file:
@@ -72,4 +78,3 @@ def test_run_env_update_will_create_an_environment_before_installing_deps(runner
         assert path.exists(env_base_path)
         result = subprocess.run("./.env/bin/python ./file_with_dependency.py", cwd=path.dirname(build_file), shell=True)
         assert 0 == result.returncode 
-        # TODO check for pyredux because thats the dependency i am installing....

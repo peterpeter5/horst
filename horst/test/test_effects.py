@@ -1,4 +1,4 @@
-from ..effects import EffectBase, DryRun
+from ..effects import EffectBase, DryRun, RunOption
 
 
 class A(EffectBase):
@@ -32,3 +32,18 @@ def test_effect_and_dry_implement_display_protocol():
     a = A()
     d = DryRun(a)
     assert a.__display__() == d.__display__() 
+
+
+def test_run_option_implements_str_protocol():
+    a_option = RunOption("asdf", "a")
+    assert '--asdf="a"' == str(a_option)
+
+
+def test_run_option_num_of_hyphens_can_be_specified():
+    option = RunOption("a", 2, 3)
+    assert '---a="2"' == str(option)
+
+
+def test_run_option_without_value_is_interpreted_as_switch():
+    option = RunOption("f")
+    assert "-f" == str(option)

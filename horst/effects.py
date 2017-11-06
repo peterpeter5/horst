@@ -27,6 +27,7 @@ class EffectBase:
     def __display__(self):
         return self.__repr__()
 
+
 class ErrorBase:
     def __init__(self, reason):
         self.reason = reason
@@ -67,3 +68,16 @@ class RunCommand(EffectBase):
 
     def __str__(self):
         return "%s %s" % (self.command, " ".join(map(str, self.arguments)))
+
+
+class RunOption:
+
+    def __init__(self, name, value=None, hyphens=None):
+        self.name = name
+        self.value = value
+        self.hyphens = min(len(name), 2) if hyphens is None else hyphens
+
+    def __str__(self):
+        return "-" * self.hyphens + \
+            ('%s="%s"' %(self.name, str(self.value)) if self.value is not None else self.name)
+ 

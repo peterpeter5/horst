@@ -1,4 +1,4 @@
-from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit
+from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit, pytest_coverage
 from ..effects import RunOption
 from functools import reduce
 import pytest
@@ -79,3 +79,17 @@ def test_junit_serializes_as_expected():
     assert junit() == []
     assert junit("a") == [RunOption("junit-xml", "a")]
     assert junit("a", "b") == [RunOption("junit-xml", "a"), RunOption("junit-prefix", "b")]
+
+
+def test_pytest_coverage_with_config_file():
+    assert pytest_coverage(config=".asdf.conf") == [RunOption("cov-config", ".asdf.conf")]
+
+
+def test_pytest_coverage_with_full_config():
+    cover_config = pytest_coverage("package", ["html", "term"], 96)
+    assert cover_config == [
+        RunOption('cov', 'package'), 
+        RunOption('cov-report', 'html'),
+        RunOption('cov-report', 'term'),
+        RunOption('cov-fail-under', '96')
+    ]

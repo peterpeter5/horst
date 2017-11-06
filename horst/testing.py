@@ -1,5 +1,6 @@
 from .effects import RunOption
 from functools import partial, reduce
+from itertools import chain
 
 
 class _LogicalOption(RunOption):
@@ -78,7 +79,29 @@ def named(*args):
 
 
 def junit(path=None, prefix=None):
-    report_path = [RunOption("junit-xml", path)] if path else []
-    prefix = [RunOption("junit-prefix", prefix)] if prefix else []
-    #TODO Error-handling: raise  error when (not report_path and prefix)
+    report_path = _make_option_or_empty_list("junit-xml", path)
+    prefix = _make_option_or_empty_list("junit-prefix", prefix)
+    # TODO Error-handling: raise  error when (not report_path and prefix)
     return report_path + prefix
+
+
+def pytest_coverage(folders=None, report=None, min=None, config=None):
+    if config is not None:
+        if folders or report or min:
+            pass  # TODO Error-handling raise error
+        return _make_option_or_empty_list("cov-config", config)
+
+    folders = [folders] if not isinstance(folders, (list, tuple)) else folders
+    folders = [RunOption("cov", folder) for folder in folders]
+    
+    report = flatten([_make_option_or_empty_list("cov-report", report_type) for report_type in report])
+    break_on_min = _make_option_or_empty_list("cov-fail-under", min)
+    return folders + report + break_on_min
+
+
+def _make_option_or_empty_list(name, value):
+    return [RunOption(name, value)] if value else [] 
+
+
+def flatten(args):
+    return list(chain(*args))

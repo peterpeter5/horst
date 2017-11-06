@@ -5,6 +5,7 @@ from horst import get_horst
 from horst.effects import DryRun 
 from horst.runner.runner import execute_stage
 from horst.runner.printer import Printer
+from functools import partial
 
 
 def exec_file(filename):
@@ -15,6 +16,11 @@ def exec_file(filename):
 class MyCli(click.MultiCommand):
 
     static_cmds = ["debug"]
+
+    def __init__(self, build_file="", *args, **kwargs):
+        if os.path.exists(build_file):
+            exec_file(build_file)
+        super(MyCli, self).__init__(*args, **kwargs)
 
     def list_commands(self, ctx):
         dynamic_cmds =  [
@@ -28,6 +34,7 @@ class MyCli(click.MultiCommand):
         if name in self.static_cmds:
             return self.handle_static(ctx, name)
         is_dry_run = ctx.params.get('dry', False)
+        is_verbose = ctx.params.get('verbose', False)
         translation = get_horst().get_commands()
         _stage = translation[name]
         stage = [
@@ -35,7 +42,7 @@ class MyCli(click.MultiCommand):
             for num, tasks in enumerate(_stage.tasks)
         ]
 
-        gui = Printer(is_dry_run)
+        gui = Printer(is_dry_run or is_verbose)
         func = partial(execute_stage, stage, printer=gui)
         return click.Command(name, {}, func)
 
@@ -54,14 +61,15 @@ def debug():
     print("= = = = = = = = = = ")
 
 
+params = [
+    click.Option(param_decls=["-d", "--dry"], is_flag=True, default=False, help="DryRun nothing will be executed"),
+    click.Option(param_decls=["-v", "--verbose"], is_flag=True, default=False, help="Output everything to cli")
+]
+
+cli = partial(MyCli, params=params)
+
+
 if __name__ == "__main__":
     current_dir = os.getcwd()
     local_build_file = os.path.join(current_dir, "build.py")
-    if os.path.exists(local_build_file):
-        exec_file(local_build_file)
-        #for task in get_horst().get_tasks():
-        #    shout_name = functools.partial(print, task)
-        #    cli.command(task)(shout_name)
-    params = [click.Option(param_decls=["-d", "--dry"], is_flag=True, default=False, help="DryRun nothing will be executed")]
-    cli = MyCli(params=params)
-    cli()
+    cli(local_build_file)()

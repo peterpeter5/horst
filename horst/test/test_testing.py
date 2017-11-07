@@ -14,13 +14,13 @@ def test_mark_option_serializes_as_expected():
 
 def test_mark_option_is_invertable_via_bit_operator():
     fast = Mark("fast")
-    assert str(fast.invert()) == '-m="not (fast)"'
+    assert str(fast.invert()) == '-m="not fast"'
 
 
 def test_mark_options_can_be_used_with_bit_and():
     fast = Mark("fast")
     slow = Mark("slow")
-    assert '-m="(fast) and (slow)"' == str(fast & slow)
+    assert '-m="fast and slow"' == str(fast & slow)
 
 
 def test_mark_options_can_be_used_with_bit_or():
@@ -57,7 +57,7 @@ def test_marklist_can_be_inverted(marks):
 
 def test_marklist_can_be_used_with_and(marks):
     cs = MarkOptionList([Mark("c")])
-    assert (cs & marks).value == "(c) and (a or b)"
+    assert (cs & marks).value == "c and (a or b)"
 
 
 def test_marked_as_returns_marklist_options():
@@ -75,7 +75,15 @@ def test_namepattern_serializes_as_expected():
     loadtest = NamePattern("loadtest")
     assert str(loadtest) == '-k="loadtest"'
     durability = NamePattern("durability")
-    assert str(loadtest & durability) == '-k="(loadtest) and (durability)"'
+    assert str(loadtest & durability) == '-k="loadtest and durability"'
+
+
+def test_namepattern_inverts_special():
+    loadtest = NamePattern("loadtest")
+    assert str(loadtest.invert()) == '-k="not loadtest"'
+    durability = NamePattern("durability")
+    assert str((loadtest & durability).invert()) == '-k="not (loadtest and durability)"'
+    assert str((loadtest & (loadtest | durability)).invert()) == '-k="not (loadtest and (loadtest or durability))"'
 
 
 def test_junit_serializes_as_expected():

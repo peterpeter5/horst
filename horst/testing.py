@@ -19,13 +19,19 @@ def flatten(args):
 class _LogicalOption(RunOption):
 
     def invert(self):
-        return self.__class__("not (%s)" % self.value)
+        formatter = self._enclose_with_parentheses if " and " in self.value or " or " in self.value else lambda x:x
+        return self.__class__("not %s" % formatter(self.value))
 
     def __eq__(self, other):
         return str(self) == str(other)
 
     def __and__(self, other):
-        new_value = "(%s) and (%s)" % (self.value, other.to_option().value)
+        
+        format_self, format_other = [
+            self._enclose_with_parentheses if "and" in logic.value or "or" in logic.value else lambda x:x
+            for logic in (self, other)
+        ]
+        new_value = "%s and %s" % (format_self(self.value), format_other(other.to_option().value))
         return self.__class__(new_value)
 
     def __or__(self, other):
@@ -33,6 +39,9 @@ class _LogicalOption(RunOption):
 
     def to_option(self):
         return self
+
+    def _enclose_with_parentheses(self, text):
+        return "(%s)" % str(text)
 
 
 class _LogicalOptionList:

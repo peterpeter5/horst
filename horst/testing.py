@@ -155,9 +155,7 @@ def _join_detection_config(excludes, includes):
     return inclu_exclu, inclu_exclu_names
 
 
-class RunPyTest(RunCommand):
-    verbose = True
-    
+class RunPyTest(RunCommand):    
     def __init__(self, options):
         super(RunPyTest, self).__init__("pytest", options)
 

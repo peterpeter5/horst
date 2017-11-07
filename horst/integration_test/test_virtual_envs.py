@@ -63,7 +63,8 @@ def test_run_env_create_works_like_expected(runner):
     with no_virtaul_env_present(runner) as build_file:
         result = runner.invoke(cli(build_file), ["env:create"])
         output = get_output_checked(result)
-        last_line = output.splitlines()[-1]
+        last_line = list(filter(lambda line: line.startswith("\t|-->"), output.splitlines()))[-1]
+
         assert "OK" in last_line
 
 

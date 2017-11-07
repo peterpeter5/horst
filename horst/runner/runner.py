@@ -44,7 +44,7 @@ def _(action, printer):
                 break
     
     result_type = Ok if rt_code == 0 else Error
-    return result_type("".join(lines))
+    return result_type("".join(lines).strip())
 
 
 def execute_stage(stage, printer):

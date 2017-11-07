@@ -4,6 +4,7 @@ from .result import Ok, Error, UpToDate, Dry
 from contextlib import contextmanager
 from functools import partial
 import time
+from shutil import get_terminal_size
 
 
 class Printer:
@@ -17,31 +18,46 @@ class Printer:
     @contextmanager
     def spinner(self):
         self._progress_line_length = 0
-        yield self.signal_progress()
-        self._clear_current_line()
+        size = get_terminal_size().columns - 2
+        # print("max len", size)
+        yield self.signal_progress(0, size)
+        self._clear_current_line(size)
 
-    def _clear_current_line(self):
+    def _clear_current_line(self, current_line_length=None):
+        len_to_kill = current_line_length
         echo("\r ", nl=False)
-        echo(" "*self._progress_line_length, nl=False)
+        echo(" "*len_to_kill, nl=False)
         echo("\r", nl=False)
+        # print(f"clear line: len: {len_to_kill}")
 
-    def signal_progress(self, line_length=0):
-        def _inner(current_char, line_length, clear_line=False):
-            if clear_line:
-                self._clear_current_line()
+    def signal_progress(self, line_length=0, max_len=80):
 
+        def _is_new_line_char(current_char):
             if current_char.splitlines() and not current_char.splitlines()[0]:
-                echo("%s " % next(self._spinner), nl=False)
-                self._progress_line_length = max(self._progress_line_length, line_length + 10)
-                line_length = 0
-                clear_line = True
+                return True
             else:
-                echo(str(current_char), nl=False)
-                line_length += 1
-                clear_line = False
-            return partial(_inner, line_length=line_length, clear_line=clear_line)
+                return False
 
-        return partial(_inner, line_length=line_length)
+        def print_new_line(current_line_length, current_char):
+            if _is_new_line_char(current_char):
+                return partial(print_new_line, current_line_length)
+
+            self._clear_current_line(current_line_length)
+            content = "(%s) %s" % (next(self._spinner), current_char)
+            echo(content, nl=False)
+            return partial(print_char_in_line, len(content))
+
+        def print_char_in_line(current_line_length, current_char):
+            content = str(current_char).strip() if current_line_length < max_len else ''
+            current_line_length = min(current_line_length + len(content), max_len)
+
+            if _is_new_line_char(current_char):
+                return partial(print_new_line, current_line_length)
+            
+            echo(content, nl=False)
+            return partial(print_char_in_line, current_line_length)
+
+        return partial(print_new_line, line_length)
 
     def print_stage(self, stage):
         echo("[stage] [%s]" % stage)

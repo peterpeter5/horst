@@ -4,6 +4,7 @@ from itertools import chain
 from .rules import root, integration_test, unittest
 from .rules import test as test_route
 from .horst import get_project_path, get_horst
+from .effects import RunCommand
 from os import path
 
 
@@ -145,6 +146,19 @@ def _join_detection_config(excludes, includes):
     return inclu_exclu, inclu_exclu_names
 
 
+class RunPyTest(RunCommand):
+    def __init__(self, options):
+        super(RunPyTest, self).__init__("pytest", options)
+
+
+
 @root.config
-def test(unittest=pytest(), integration_test=None):
-    pass
+def test(unittest=pytest(), **kwags):
+    _run_unittest(unittest)
+    return {'unittest': unittest}
+
+
+@root.register(test_route/unittest, route="test")
+def _run_unittest(unittest_config):
+    return [RunPyTest(unittest_config + ["--color=yes"])]
+

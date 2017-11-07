@@ -1,4 +1,7 @@
 from horst import *
+from os import path
+
+
 Horst(__file__)
 
 
@@ -21,6 +24,23 @@ dependencies(
 package(
     name="horst",
     version=bumpversion(),
+)
+
+
+test(
+    unittest=pytest(
+        folders="horst",
+        exclude=[marked_as("slow"), named("test_load")],
+        include=[],
+        report=junit(path=path.join(".testresults", "results.xml"), prefix=""),
+        coverage=pytest_coverage(
+            folders="horst",
+            report=["html", "term"],
+            min=96,
+            config=None
+        ),
+    ),
+    integration_test=[]
 )
 
 # check(

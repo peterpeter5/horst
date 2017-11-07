@@ -35,6 +35,8 @@ class Printer:
             result_format = ("UP-TO-DATE", 'yellow')
         elif _is(Dry):
             result_format = ("Tasks that would run:", 'cyan')
+        elif _is(Error):
+            result_format = ("ERROR", "red")
         else:
             result_format = ("Oooppsala", 'magenta')
 
@@ -42,4 +44,4 @@ class Printer:
         echo("\t|--> %s" % style(result_str, fg=color))
         if self.verbose:
             for line in task_reslut.output.splitlines():
-                echo(style("\t\t|--> %s" % line.strip(), fg=color))
+                echo(style("\t\t|-->", fg=color) + " %s" % line.strip())

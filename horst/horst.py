@@ -1,5 +1,5 @@
 import os
-from .rules import root  
+from .rules import root
 import warnings
 
 
@@ -15,21 +15,22 @@ class Singleton(type):
 
 
 class Horst(metaclass=Singleton):
-
     __meta__ = None
 
     def __init__(self, file_path, package_name=None, root_engine=root):
         self.root = root_engine
         self.project_path = os.path.dirname(file_path)
         _, folder_name = os.path.split(self.project_path)
-        self.package_name = package_name if package_name is not None else folder_name 
+        self.package_name = package_name if package_name is not None else folder_name
         self.cycle = {'release': [], 'build': [], "test": [], "check": []}
 
     @property
     def package_path(self):
         package_path = os.path.join(self.project_path, self.package_name)
         if not os.path.exists(package_path):
-            warnings.warn("your package-folder <%s> does not exists. Plase specify a correct one at horst")
+            warnings.warn(
+                "your package-folder <%s> does not exists. Plase specify a correct one at horst" % package_path
+            )
         return package_path
 
     def register_release(self, commands):
@@ -46,7 +47,7 @@ class Horst(metaclass=Singleton):
         return {
             'config': self.root._config,
             'stages': self.root._stages,
-    }
+        }
 
 
 def get_project_path():

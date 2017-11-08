@@ -9,26 +9,25 @@ from os import path
 
 
 def _make_option_or_empty_list(name, value):
-    return [RunOption(name, value)] if value else [] 
-
+    return [RunOption(name, value)] if value else []
 
 
 def flatten(args):
     return list(chain(*args))
 
+
 class _LogicalOption(RunOption):
 
     def invert(self):
-        formatter = self._enclose_with_parentheses if " and " in self.value or " or " in self.value else lambda x:x
+        formatter = self._enclose_with_parentheses if " and " in self.value or " or " in self.value else lambda x: x
         return self.__class__("not %s" % formatter(self.value))
 
     def __eq__(self, other):
         return str(self) == str(other)
 
     def __and__(self, other):
-        
         format_self, format_other = [
-            self._enclose_with_parentheses if "and" in logic.value or "or" in logic.value else lambda x:x
+            self._enclose_with_parentheses if "and" in logic.value or "or" in logic.value else lambda x: x
             for logic in (self, other)
         ]
         new_value = "%s and %s" % (format_self(self.value), format_other(other.to_option().value))
@@ -118,7 +117,7 @@ def pytest_coverage(folders=None, report=[], min=None, config=None, disable=Fals
 
     folders = [folders] if not isinstance(folders, (list, tuple)) else folders
     folders = [RunOption("cov", folder) for folder in folders]
-    
+
     report = flatten([_make_option_or_empty_list("cov-report", report_type) for report_type in report])
     break_on_min = _make_option_or_empty_list("cov-fail-under", min)
     return folders + report + break_on_min
@@ -151,14 +150,13 @@ def _join_detection_config(excludes, includes):
     if include_names and exclude_names:
         inclu_exclu_names = [exclude_names[0] & include_names[0]]
     else:
-        inclu_exclu_names = include_names + exclude_names  
+        inclu_exclu_names = include_names + exclude_names
     return inclu_exclu, inclu_exclu_names
 
 
-class RunPyTest(RunCommand):    
+class RunPyTest(RunCommand):
     def __init__(self, options):
         super(RunPyTest, self).__init__("pytest", options)
-
 
 
 @root.config
@@ -167,7 +165,6 @@ def test(unittest=pytest(), **kwags):
     return {'unittest': unittest}
 
 
-@root.register(test_route/unittest, route="test")
+@root.register(test_route / unittest, route="test")
 def _run_unittest(unittest_config):
     return [RunPyTest(unittest_config + ["--color=yes"])]
-

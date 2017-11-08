@@ -36,6 +36,7 @@ class UpdateEnv(RunCommand):
     def __display__(self):
         return "pip install %s" % " ".join(self.dependencies)
 
+
 def _is_linux():
     return os.name == 'posix'
 

@@ -31,4 +31,4 @@ def test_dry_run_with_tests(runner):
         result = runner.invoke(cli(build_file), ['-d', 'test'])
         lines = get_output_checked(result).splitlines()
         dirname = os.path.dirname(build_file)
-        assert "pytest --color=yes %s" % os.path.join(dirname, "unit") in lines[-1]
+        assert "pytest --color=yes unit" in lines[-1]

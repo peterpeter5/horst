@@ -114,7 +114,7 @@ def pytest_coverage(folders=None, report=[], min=None, config=None, disable=Fals
         if folders or report or min:
             pass  # TODO Error-handling raise error
         return _make_option_or_empty_list("cov-config", config)
-
+    folders = get_horst().package_name if folders is None else folders
     folders = [folders] if not isinstance(folders, (list, tuple)) else folders
     folders = [RunOption("cov", folder) for folder in folders]
 
@@ -125,12 +125,9 @@ def pytest_coverage(folders=None, report=[], min=None, config=None, disable=Fals
 
 def pytest(folders="", exclude=[], include=[], report=[], coverage=None):
     coverage = configure_or_default(coverage, partial(pytest_coverage, disable=True))
-    base_path = get_project_path()
     folders = [get_horst().package_name] if not folders else folders
-    folders = [
-        path.join(base_path, folder)
-        for folder in ([folders] if not isinstance(folders, (list, tuple)) else folders)
-    ]
+    folders = [folders] if not isinstance(folders, (list, tuple)) else folders
+
     excludes = [ex.invert() for ex in exclude]
     inclu_exclu_marks, inclu_exclu_names = _join_detection_config(excludes, include)
     return inclu_exclu_marks + inclu_exclu_names + report + coverage + folders

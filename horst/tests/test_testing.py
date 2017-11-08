@@ -1,4 +1,5 @@
-from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit, pytest_coverage
+from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit, \
+    pytest_coverage
 from ..testing import pytest as pytest_config
 from ..effects import RunOption
 from ..horst import Horst
@@ -49,7 +50,7 @@ def test_marklist_list_protocol(marks):
 def test_marklist_to_mark_returns_or_marks(marks):
     assert marks.to_option() == Mark("a") | Mark("b")
     assert MarkOptionList([Mark("c")]).to_option() == Mark("c")
- 
+
 
 def test_marklist_can_be_inverted(marks):
     assert marks.invert().value == "not (a or b)"
@@ -99,7 +100,7 @@ def test_pytest_coverage_with_config_file():
 def test_pytest_coverage_with_full_config():
     cover_config = pytest_coverage("package", ["html", "term"], 96)
     assert cover_config == [
-        RunOption('cov', 'package'), 
+        RunOption('cov', 'package'),
         RunOption('cov-report', 'html'),
         RunOption('cov-report', 'term'),
         RunOption('cov-fail-under', '96')
@@ -112,21 +113,21 @@ def horst():
     horst._invalidate()
     return Horst(__file__, "package_name")
 
+
 def test_pytest_without_config(horst):
     empty_config = pytest_config()
-    package_name = path.join(path.dirname(__file__), "package_name")
-    assert empty_config == [package_name]
+    assert empty_config == ["package_name"]
 
 
 def test_pytest_with_config(horst):
     config = pytest_config(
-        ["unittest", "test"], 
-        [marked_as("slow"), named("super_slow")], 
-        [not_marked_as("load")], 
-        junit(".junit"), 
+        ["unittest", "test"],
+        [marked_as("slow"), named("super_slow")],
+        [not_marked_as("load")],
+        junit(".junit"),
         pytest_coverage(disable=True)
     )
-    folders = [path.join(path.dirname(__file__), dir_name) for dir_name in ["unittest", "test"]] 
+    folders = ["unittest", "test"]
     assert config == [
         Mark("slow").invert() & Mark("load").invert(),
         NamePattern("super_slow").invert(),

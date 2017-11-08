@@ -1,4 +1,6 @@
 from functools import singledispatch
+
+from horst import get_project_path
 from horst.effects import DryRun, RunCommand 
 import warnings
 import subprocess
@@ -32,7 +34,13 @@ def _(action, printer):
 
 @execute.register(RunCommand)
 def _run_command(action, printer):
-    proc = subprocess.Popen(str(action), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        str(action),
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=get_project_path()
+    )
     lines = []
     rt_code = None
     with printer.spinner() as spinner:

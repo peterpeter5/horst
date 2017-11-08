@@ -2,7 +2,7 @@ from functools import singledispatch
 from horst.effects import DryRun, RunCommand 
 import warnings
 import subprocess
-import itertools
+from horst.testing import RunPyTest
 from functools import partial
 from .result import Ok, Error, UpToDate, Dry
 
@@ -31,7 +31,7 @@ def _(action, printer):
 
 
 @execute.register(RunCommand)
-def _(action, printer):
+def _run_command(action, printer):
     proc = subprocess.Popen(str(action), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines = []
     rt_code = None
@@ -44,7 +44,16 @@ def _(action, printer):
                 break
     error_stream = proc.stderr.readlines()
     result_type = Ok if rt_code == 0 else Error
-    return result_type("".join(lines + error_stream).strip())
+    return result_type("".join(lines + error_stream).strip(), rt_code)
+
+
+@execute.register(RunPyTest)
+def _(action, printer):
+    result = _run_command(action, printer)
+    if result.exit_code == 5:
+        return UpToDate("Found no Tests to run")
+    else:
+        return result
 
 
 def execute_stage(stage, printer):

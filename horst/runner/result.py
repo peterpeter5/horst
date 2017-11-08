@@ -1,6 +1,7 @@
 class _Result:
 
-    def __init__(self, output):
+    def __init__(self, output, exit_code=0):
+        self.exit_code = exit_code
         self.output = output
 
 

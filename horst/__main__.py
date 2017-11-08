@@ -2,7 +2,7 @@ import click
 import os
 from functools import partial
 from horst import get_horst
-from horst.effects import DryRun 
+from horst.effects import DryRun
 from horst.runner.runner import execute_stage
 from horst.runner.printer import Printer
 from functools import partial
@@ -14,7 +14,6 @@ def exec_file(filename):
 
 
 class MyCli(click.MultiCommand):
-
     static_cmds = ["debug"]
 
     def __init__(self, build_file="", *args, **kwargs):
@@ -23,8 +22,8 @@ class MyCli(click.MultiCommand):
         super(MyCli, self).__init__(*args, **kwargs)
 
     def list_commands(self, ctx):
-        dynamic_cmds =  [
-            cmd 
+        dynamic_cmds = [
+            cmd
             for cmd, stage in get_horst().get_commands().items()
             if not all(map(lambda x: len(x) == 0, stage.tasks))
         ]
@@ -38,7 +37,7 @@ class MyCli(click.MultiCommand):
         translation = get_horst().get_commands()
         _stage = translation[name]
         stage = [
-            (":".join(str(_stage).split(":")[0:num+1]), tasks if not is_dry_run else list(map(DryRun, tasks)))
+            (":".join(str(_stage).split(":")[0:num + 1]), tasks if not is_dry_run else list(map(DryRun, tasks)))
             for num, tasks in enumerate(_stage.tasks)
         ]
 
@@ -49,6 +48,7 @@ class MyCli(click.MultiCommand):
     def handle_static(self, ctx, name):
         if "debug" == name:
             return debug
+
 
 @click.command()
 def debug():
@@ -67,7 +67,6 @@ params = [
 ]
 
 cli = partial(MyCli, params=params)
-
 
 if __name__ == "__main__":
     current_dir = os.getcwd()

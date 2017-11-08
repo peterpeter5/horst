@@ -65,6 +65,7 @@ def _(action, printer):
 
 
 def execute_stage(stage, printer):
+    named_results = []
     for name, tasks in stage:
         printer.print_stage(name)
         parallel_tasks = tasks if tasks else [_NoOp(name)]
@@ -72,3 +73,5 @@ def execute_stage(stage, printer):
         for single_task in parallel_tasks:
             result = execute(single_task, printer=printer)
             printer.print_effect_result(single_task, result)
+            named_results.append((name, result))
+    return named_results

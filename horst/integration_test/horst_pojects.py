@@ -1,6 +1,7 @@
 import re
 from contextlib import contextmanager
 from os import path
+import os
 
 
 def get_output_checked(result):
@@ -71,7 +72,57 @@ Horst(__file__, 'unit')
 test()
 """
                    )
-    import os
     package_folder = path.join(folder, "unit")
     if not path.exists(package_folder):
         os.mkdir(package_folder)
+
+
+def horst_with_tests_that_pass(folder):
+    file_name = path.join(folder, "build.py")
+    with open(file_name, 'w') as file:
+        file.write("""
+from horst import *
+from horst import test
+Horst(__file__, 'unit')
+test()        
+"""
+        )
+    package_path = path.join(folder, "unit")
+    if not path.exists(package_path):
+        os.mkdir(package_path)
+    with open(path.join(package_path, "__init__.py"), "w") as file:
+        file.write(" ")
+    with open(path.join(package_path, "test_units.py"), "w") as file:
+        file.write("""
+def test_i_will_pass():
+    assert True
+    
+
+def test_pass_every_time():
+    assert True
+""")
+
+def horst_with_test_that_fail(folder):
+    file_name = path.join(folder, "build.py")
+    with open(file_name, 'w') as file:
+        file.write("""
+from horst import *
+from horst import test
+Horst(__file__, 'unit')
+test()        
+"""
+                   )
+    package_path = path.join(folder, "unit")
+    if not path.exists(package_path):
+        os.mkdir(package_path)
+    with open(path.join(package_path, "__init__.py"), "w") as file:
+        file.write(" ")
+    with open(path.join(package_path, "test_units.py"), "w") as file:
+        file.write("""
+def test_i_will_pass():
+    assert True
+
+
+def test_pass_every_time():
+    assert False
+    """)

@@ -3,6 +3,7 @@ import os
 from functools import partial
 from horst import get_horst
 from horst.effects import DryRun
+from horst.runner.result import Error
 from horst.runner.runner import execute_stage
 from horst.runner.printer import Printer
 from functools import partial
@@ -20,6 +21,16 @@ def exec_file(filename):
             filename,
             'exec'
         ), global_attributes, locals())
+
+
+def result_handler(func):
+    def interpret(stage, result):
+        if isinstance(result, Error):
+            raise click.ClickException("Error during execution of stage: %s" % stage)
+        else:
+            pass
+
+    return [interpret(name, result) for name, result in func()]
 
 
 class MyCli(click.MultiCommand):
@@ -52,7 +63,7 @@ class MyCli(click.MultiCommand):
 
         gui = Printer(is_dry_run or is_verbose)
         func = partial(execute_stage, stage, printer=gui)
-        return click.Command(name, {}, func)
+        return click.Command(name, {}, partial(result_handler, func))
 
     def handle_static(self, ctx, name):
         if "debug" == name:

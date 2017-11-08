@@ -32,7 +32,7 @@ def _(action, printer):
 
 @execute.register(RunCommand)
 def _(action, printer):
-    proc = subprocess.Popen(str(action), shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(str(action), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines = []
     rt_code = None
     with printer.spinner() as spinner:
@@ -40,16 +40,16 @@ def _(action, printer):
             spinner = spinner(line.decode())
             lines.append(line.decode())
             rt_code = proc.poll()
-            if  rt_code is not None:
+            if  rt_code is not None and not line:
                 break
-    
+    error_stream = proc.stderr.readlines()
     result_type = Ok if rt_code == 0 else Error
-    return result_type("".join(lines).strip())
+    return result_type("".join(lines + error_stream).strip())
 
 
 def execute_stage(stage, printer):
     for name, tasks in stage:
-        printer.print_stage("[stage] [%s]" % name)
+        printer.print_stage(name)
         parallel_tasks = tasks if tasks else [_NoOp(name)]
         # TODO execute in parallel!
         for single_task in parallel_tasks:

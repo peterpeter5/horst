@@ -1,9 +1,10 @@
 from click import echo, style
+import click
 import itertools
 from .result import Ok, Error, UpToDate, Dry
 from contextlib import contextmanager
 from functools import partial
-import time
+import os
 from shutil import get_terminal_size
 
 
@@ -17,11 +18,16 @@ class Printer:
 
     @contextmanager
     def spinner(self):
+        def noop(y=0):
+            return noop
+
         self._progress_line_length = 0
-        size = get_terminal_size().columns - 2
+        size = get_terminal_size((20, 20)).columns - 2
+        stream = click.get_binary_stream("stdout")
+        isatty = stream.isatty()
+        yield noop(0) if not isatty else self.signal_progress(0, size)
         # print("max len", size)
-        yield self.signal_progress(0, size)
-        self._clear_current_line(size)
+        self._clear_current_line(size) if isatty else noop()
 
     def _clear_current_line(self, current_line_length=None):
         len_to_kill = current_line_length

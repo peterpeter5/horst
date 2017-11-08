@@ -7,3 +7,5 @@ from .testing import pytest_coverage, named, marked_as, not_marked_as, junit, py
 __all__ = ["Horst", "get_horst", "get_project_path", "package", "dependencies", "virtualenv",
            "bumpversion", "pytest_coverage", "named", "marked_as", "not_marked_as", "junit",
            "pytest", "test"]
+
+__new__horst = False

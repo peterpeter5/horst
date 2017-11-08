@@ -9,6 +9,7 @@ a__b = a / b
 
 rule = Engine()
 
+
 @rule.register(a__b, route="b")
 def b_conf():
     pass
@@ -36,7 +37,7 @@ def test_horst_is_a_singleton_but_can_be_killed_or_invalidated():
 
 def test_get_project_path_returns_dir_name_of_horst_instance():
     horst = Horst(__file__)
-    assert get_project_path() == path.dirname(__file__) 
+    assert get_project_path() == path.dirname(__file__)
 
 
 def test_get_project_path_results_in_empty_str_when_no_path_like_is_provided():
@@ -50,7 +51,7 @@ def test_get_project_path_is_coupled_to_horst_cycle():
 
     horse._invalidate()
     new_horst = Horst("1/2/3")
-    assert "1/2" == get_project_path() == new_horst.project_path 
+    assert "1/2" == get_project_path() == new_horst.project_path
 
 
 def test_horst_get_commands_returns_cmd_path_and_stage_not_tasks():

@@ -115,7 +115,7 @@ def horst():
 def test_pytest_without_config(horst):
     empty_config = pytest_config()
     package_name = path.join(path.dirname(__file__), "package_name")
-    assert empty_config == ["--cov", package_name]
+    assert empty_config == [package_name]
 
 
 def test_pytest_with_config(horst):

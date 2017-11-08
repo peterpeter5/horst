@@ -89,6 +89,11 @@ class Engine:
         return self._stages
 
 
+def configure_or_default(variable, default_config):
+    default_config = default_config() if callable(default_config) else default_config
+    return variable if variable is not None else default_config
+
+
 class VirtualEnv(_Stage):
     pass
 

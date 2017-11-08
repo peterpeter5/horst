@@ -1,8 +1,7 @@
 from .horst import get_horst, get_project_path
 from horst.effects import EffectBase, ErrorBase, RunCommand
-import re
 import os
-from .rules import root, env, create, update
+from .rules import root, env, create, update, configure_or_default
 from functools import reduce
 
 
@@ -74,7 +73,8 @@ def _update_environment(deps, virtenv):
 
 
 @root.config
-def dependencies(install=[], build=[], test=[], versions=[], environment=virtualenv()):
+def dependencies(install=[], build=[], test=[], versions=[], environment=None):
+    environment = configure_or_default(environment, virtualenv)
     deps = dict(
         install=install,
         build=build,

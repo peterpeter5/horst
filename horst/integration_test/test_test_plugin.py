@@ -1,3 +1,5 @@
+import os
+
 from .horst_pojects import get_output_checked, isolated_horst_project, horst_with_no_tests, \
     get_stage_result_from_output, get_command_section
 from click.testing import CliRunner
@@ -28,4 +30,5 @@ def test_dry_run_with_tests(runner):
     with isolated_horst_project(horst_with_no_tests, runner) as build_file:
         result = runner.invoke(cli(build_file), ['-d', 'test'])
         lines = get_output_checked(result).splitlines()
-        assert "pytest --cov --color=yes unit" in lines[-1]
+        dirname = os.path.dirname(build_file)
+        assert "pytest --color=yes %s" % os.path.join(dirname, "unit") in lines[-1]

@@ -62,7 +62,8 @@ dependencies(install=['pyredux'], environment=virtualenv())
 
 
 def horst_with_no_tests(folder):
-    with open(path.join(folder, "build.py"), 'w') as file:
+    file_name = path.join(folder, "build.py")
+    with open(file_name, 'w') as file:
         file.write("""
 from horst import *
 from horst import test

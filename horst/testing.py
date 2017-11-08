@@ -1,7 +1,7 @@
 from .effects import RunOption
 from functools import partial, reduce
 from itertools import chain
-from .rules import root, integration_test, unittest
+from .rules import root, integration_test, unittest, configure_or_default
 from .rules import test as test_route
 from .horst import get_project_path, get_horst
 from .effects import RunCommand
@@ -123,7 +123,8 @@ def pytest_coverage(folders=None, report=[], min=None, config=None, disable=Fals
     return folders + report + break_on_min
 
 
-def pytest(folders="", exclude=[], include=[], report=[], coverage=pytest_coverage()):
+def pytest(folders="", exclude=[], include=[], report=[], coverage=None):
+    coverage = configure_or_default(coverage, partial(pytest_coverage, disable=True))
     base_path = get_project_path()
     folders = [get_horst().package_name] if not folders else folders
     folders = [
@@ -160,11 +161,12 @@ class RunPyTest(RunCommand):
 
 
 @root.config
-def test(unittest=pytest(), **kwags):
+def test(unittest=None, **kwags):
+    unittest = configure_or_default(unittest, pytest)
     _run_unittest(unittest)
     return {'unittest': unittest}
 
 
 @root.register(test_route / unittest, route="test")
 def _run_unittest(unittest_config):
-    return [RunPyTest(unittest_config + ["--color=yes"])]
+    return [RunPyTest(unittest_config[:-2] + ["--color=yes"] + unittest_config[-2:])]

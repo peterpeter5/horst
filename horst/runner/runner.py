@@ -44,7 +44,7 @@ def _run_command(action, printer):
                 break
     error_stream = proc.stderr.readlines()
     result_type = Ok if rt_code == 0 else Error
-    return result_type("".join(lines + error_stream).strip(), rt_code)
+    return result_type("".join(lines + list(map(lambda x: x.decode(), error_stream))).strip(), rt_code)
 
 
 @execute.register(RunPyTest)

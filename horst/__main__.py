@@ -6,11 +6,20 @@ from horst.effects import DryRun
 from horst.runner.runner import execute_stage
 from horst.runner.printer import Printer
 from functools import partial
+from copy import copy
+from horst.horst import get_horst
 
 
 def exec_file(filename):
-    exec(compile(open(filename, "rb").read(),
-                 filename, 'exec'), globals(), locals())
+    global_attributes = copy(globals())
+    global_attributes["__file__"] = filename
+    get_horst()._invalidate()
+    exec(
+        compile(
+            open(filename, "rb").read(),
+            filename,
+            'exec'
+        ), global_attributes, locals())
 
 
 class MyCli(click.MultiCommand):

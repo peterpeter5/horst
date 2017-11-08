@@ -2,8 +2,16 @@ from horst import Horst
 from horst.versioning import bumpversion, UpdateBumpConfig, CreateBumpConfig, RunBumpVersion, _render_int_bump_config
 from os import path
 import horst.versioning
+import pytest
 
-Horst(__file__)
+
+@pytest.fixture(autouse=True)
+def set_up_horst():
+    horst = Horst(__file__)
+    yield
+    horst._invalidate()
+
+
 here = path.dirname(__file__)
 
 

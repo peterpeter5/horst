@@ -20,7 +20,7 @@ _first_stack_stage = A() / B()
 _second_stack_stage = C()
 
 
-@rules.config
+@rules.config(A(""))
 def config_smthng(a, b):
     return [a, b]
 

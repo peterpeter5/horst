@@ -40,7 +40,7 @@ def _is_linux():
     return os.name == 'posix'
 
 
-@root.config
+@root.config(env / create)
 def virtualenv(config=None):
     if config is None:
         config = {".env": {"python": "python"}}
@@ -72,7 +72,7 @@ def _update_environment(deps, virtenv):
     return [UpdateEnv(env_base, deps_to_install)] if deps_to_install else []
 
 
-@root.config
+@root.config(env)
 def dependencies(install=[], build=[], test=[], versions=[], environment=None):
     environment = configure_or_default(environment, virtualenv)
     deps = dict(

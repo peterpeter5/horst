@@ -161,7 +161,7 @@ class RunPyTest(RunCommand):
         super(RunPyTest, self).__init__("pytest", options)
 
 
-@root.config
+@root.config(test_route)
 def test(unittest=None, **kwargs):
     unittest = configure_or_default(unittest, pytest)
     all_test_cmds = _run_unittest(unittest)

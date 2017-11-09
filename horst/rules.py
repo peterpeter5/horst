@@ -64,14 +64,16 @@ class Engine:
         self._config = {}
         self._stages = {}
 
-    def config(self, func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            config = func(*args, **kwargs)
-            self._config[func.__name__] = config
-            return config
+    def config(self, stage):
+        def _inner(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                config = func(*args, **kwargs)
+                self._config[func.__name__] = config
+                return config
 
-        return wrapper
+            return wrapper
+        return _inner
 
     def register(self, stages, route=None):
         def _inner(func):

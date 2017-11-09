@@ -1,5 +1,6 @@
+from horst.rules import root
 from ..testing import Mark, marked_as, MarkOptionList, not_marked_as, NamePattern, NamesList, named, junit, \
-    pytest_coverage
+    pytest_coverage, test
 from ..testing import pytest as pytest_config
 from ..effects import RunOption
 from ..horst import Horst
@@ -134,3 +135,31 @@ def test_pytest_with_config(horst):
         RunOption("junit-xml", ".junit"),
         *folders
     ]
+
+
+def test_testconfigure_with_default_test_stages():
+    config = test()
+    assert config == {"unittest": pytest_config()}
+    assert "test" in root.get_stages()
+
+
+def test_testconfigure_with_multiple_test_stages():
+    integration_test_config = pytest_config(folders="integrationtest")
+    config = test(integrationtest=integration_test_config)
+    unittest_config = pytest_config()
+    assert is_subset({"unittest": unittest_config, "integrationtest": integration_test_config}, config)
+    stages = root.get_stages()
+    assert "test" in stages
+    assert "test:integrationtest" in stages
+
+
+def test_testconfigure_with_multiple_adds_magic_all_stage():
+    integration_test_config = pytest_config(folders="integrationtest")
+    test(integrationtest=integration_test_config)
+    stages = root.get_stages()
+    assert "test:all" in stages
+    assert len(stages["test:all"].tasks) == 2
+
+
+def is_subset(a_dict, superset_dict):
+    return all(name in superset_dict and superset_dict[name] == value for name, value in a_dict.items())

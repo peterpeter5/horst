@@ -1,3 +1,4 @@
+from copy import copy
 from functools import wraps, reduce
 
 
@@ -16,16 +17,19 @@ class _Stage:
         if not isinstance(other, _Stage):
             raise TypeError("division between %s and %s is not definined" % (
                 self.__class__, other.__class__))
-        
+
         route = _Route(self)
         return route / other
 
     @property
     def tasks(self):
-        return self._tasks 
+        return self._tasks[-1] if len(self._tasks) != 0 else self._tasks
 
     def register_tasks(self, tasks):
-        self._tasks = tasks
+        self._tasks.append(tasks)
+
+    def __str__(self):
+        return self.name
 
 
 class _Route:
@@ -42,16 +46,16 @@ class _Route:
 
     @property
     def tasks(self):
-        return [stage._tasks for stage in self]
+        return [stage.tasks for stage in self]
 
     def __iter__(self):
-        return(a for a in self._chain)
+        return (a for a in self._chain)
 
     def __str__(self):
         return ":".join((stage.name for stage in self))
 
     def register_tasks(self, tasks):
-        self._chain[-1]._tasks = tasks
+        self._chain[-1].register_tasks(tasks)
 
 
 class Engine:
@@ -77,9 +81,10 @@ class Engine:
                 stages.register_tasks(tasks)
                 name = str(stages) if route is None else route.replace("/", ":")
                 self._stages[name] = stages
-                return tasks
+                return list(tasks) if tasks is not None else None
 
             return wrapper
+
         return _inner
 
     def get_config_for(self, key):
@@ -98,7 +103,7 @@ class VirtualEnv(_Stage):
     pass
 
 
-class Testing(_Stage):
+class TestingStage(_Stage):
     pass
 
 
@@ -107,6 +112,5 @@ env = VirtualEnv("env")
 create = VirtualEnv("create")
 update = VirtualEnv("update")
 
-test = Testing("test")
-unittest = Testing("unittest")
-integration_test = Testing("integration")
+test = TestingStage("test")
+unittest = TestingStage("unittest")

@@ -1,11 +1,10 @@
 from .effects import RunOption
 from functools import partial, reduce
 from itertools import chain
-from .rules import root, integration_test, unittest, configure_or_default
+from .rules import root, unittest, configure_or_default, TestingStage
 from .rules import test as test_route
 from .horst import get_project_path, get_horst
 from .effects import RunCommand
-from os import path
 
 
 def _make_option_or_empty_list(name, value):
@@ -106,7 +105,7 @@ def junit(path=None, prefix=None):
     return report_path + prefix
 
 
-def pytest_coverage(folders=None, report=[], min=None, config=None, disable=False):
+def pytest_coverage(folders=None, report=[], min=None, config=None, append=False, disable=False):
     if disable:
         return []
 
@@ -120,7 +119,8 @@ def pytest_coverage(folders=None, report=[], min=None, config=None, disable=Fals
 
     report = flatten([_make_option_or_empty_list("cov-report", report_type) for report_type in report])
     break_on_min = _make_option_or_empty_list("cov-fail-under", min)
-    return folders + report + break_on_min
+    append = [RunOption("cov-append", hyphens=2)] if append else []
+    return folders + report + break_on_min + append
 
 
 def pytest(folders="", exclude=[], include=[], report=[], coverage=None):
@@ -158,12 +158,32 @@ class RunPyTest(RunCommand):
 
 
 @root.config
-def test(unittest=None, **kwags):
+def test(unittest=None, **kwargs):
     unittest = configure_or_default(unittest, pytest)
-    _run_unittest(unittest)
-    return {'unittest': unittest}
+    all_test_cmds = _run_unittest(unittest)
+    test_config = {'unittest': unittest}
+    for config_name, config in kwargs.items():
+        all_run_options = all(map(lambda opt: isinstance(opt, (RunOption, str)), config))
+        if all_run_options:
+            stage = TestingStage(config_name)
+            test_cmds = root.register(test_route / stage)(_configure_runpytest)(config)
+
+        else:
+            test_cmds = []
+            pass  # TODO Error-handling
+        all_test_cmds.extend(test_cmds)
+        test_config.update({config_name: config})
+
+    if kwargs:
+        test_config['all'] = {}
+        root.register(test_route/TestingStage('all'))(lambda y: y)(all_test_cmds)
+    return test_config
 
 
 @root.register(test_route / unittest, route="test")
 def _run_unittest(unittest_config):
-    return [RunPyTest(unittest_config[:-2] + ["--color=yes"] + unittest_config[-2:])]
+    return _configure_runpytest(unittest_config)
+
+
+def _configure_runpytest(config):
+    return [RunPyTest(config[:-2] + ["--color=yes"] + config[-2:])]

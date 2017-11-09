@@ -35,6 +35,7 @@ def put_tasks_on_b():
 def put_tasks_stacked():
     return ["stacked"]
 
+
 @rules.register(_ab_stage, route="a/c/a/b")
 def tasks_with_custom_route():
     pass
@@ -65,16 +66,16 @@ def test_stage_has_name():
     assert stage_with_custom_name.name == "custom"
 
 
-def test_stages_can_register_tasks():
+def test_stages_and_routes_can_register_tasks():
     a = A()
     a.register_tasks(["a"])
-    assert a._tasks == ["a"]
+    assert a.tasks == ["a"]
 
     ab = a / B()
     ab.register_tasks(["a", "b"])
     ab_chain = list(ab)
-    assert ab_chain[0]._tasks == ["a"]
-    assert ab_chain[1]._tasks == ["a", "b"]
+    assert ab_chain[0].tasks == ["a"]
+    assert ab_chain[1].tasks == ["a", "b"]
 
 
 def test_stages_give_a_tasks_chain_when_asked():
@@ -112,3 +113,17 @@ def test_register_can_have_custom_routes():
     tasks_with_custom_route()
     actual_stages = list(rules.get_stages().keys())
     assert "a:c:a:b" in actual_stages
+
+
+def test_registered_task_lists_are_immutable():
+    tasks_list = "asdf"
+    tasks = rules.register(_Stage("a"))(lambda y: y)(tasks_list)
+    assert id(tasks) != id(tasks_list)
+
+
+def test_stage_tasks_are_immutable_for_debugging_but_act_mutable():
+    stage = _Stage("u")
+    stage.register_tasks("asdf")
+    stage.register_tasks("new task")
+    assert stage._tasks == ["asdf", "new task"]
+    assert stage.tasks == "new task"

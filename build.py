@@ -29,19 +29,20 @@ package(
 
 test(
     unittest=pytest(
-        # folders="horst",
-        exclude=[],  # [marked_as("slow"), named("horst2")],
+        exclude=[marked_as("slow")],  # [marked_as("slow"), named("horst2")],
         include=[],
         report=junit(path=path.join(".testresults", "results.xml"), prefix=""),
-        coverage=pytest_coverage(),
-        #coverage=pytest_coverage(
-        #    folders="horst",
-        #    report=["html", "term"],
-        #    # min=96,
-        #    config=None
-        #),
+        coverage=pytest_coverage(
+            report=["html", "term"],
+        )
     ),
-    integration_test=[]
+    slow=pytest(
+        exclude=[not_marked_as("slow")],
+        coverage=pytest_coverage(
+            append=True,
+            min=95
+        )
+    )
 )
 
 # check(

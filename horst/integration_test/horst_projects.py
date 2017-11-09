@@ -118,7 +118,7 @@ def horst_with_tests_that_pass(folder):
 from horst import *
 from horst import test
 Horst(__file__, 'unit')
-test()        
+test(funny=pytest())        
 """
         )
     package_path = path.join(folder, "unit")
@@ -135,6 +135,38 @@ def test_i_will_pass():
 def test_pass_every_time():
     assert True
 """)
+
+
+def horst_with_tests_one_pass_one_fail(folder):
+    file_name = path.join(folder, "build.py")
+    with open(file_name, 'w') as file:
+        file.write("""
+from horst import *
+from horst import test
+Horst(__file__, 'unit')
+test(unittest=pytest(include=[named("pass")]), unstable=pytest())        
+"""
+                   )
+    package_path = path.join(folder, "unit")
+    if not path.exists(package_path):
+        os.mkdir(package_path)
+    with open(path.join(package_path, "__init__.py"), "w") as file:
+        file.write(" ")
+    with open(path.join(package_path, "test_pass.py"), "w") as file:
+        file.write("""
+def test_i_will_pass():
+    assert True
+
+
+def test_pass_every_time():
+    assert True
+""")
+    with open(path.join(package_path, "test_fail.py"), "w") as file:
+        file.write("""
+def test_i_will_fail():
+    assert False
+""")
+
 
 def horst_with_test_that_fail(folder):
     file_name = path.join(folder, "build.py")

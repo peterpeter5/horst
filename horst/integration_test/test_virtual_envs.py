@@ -1,4 +1,4 @@
-from .horst_pojects import horst_project, get_output_checked, minimal_horst, horst_with_dependencies, \
+from .horst_projects import horst_project, get_output_checked, minimal_horst, horst_with_dependencies, \
     get_command_section
 from click.testing import CliRunner
 import pytest

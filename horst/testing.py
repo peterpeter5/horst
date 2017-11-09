@@ -129,27 +129,31 @@ def pytest(folders="", exclude=[], include=[], report=[], coverage=None):
     folders = [folders] if not isinstance(folders, (list, tuple)) else folders
 
     excludes = [ex.invert() for ex in exclude]
-    inclu_exclu_marks, inclu_exclu_names = _join_detection_config(excludes, include)
+    includes = [inc.to_option() for inc in include]
+    inclu_exclu_marks, inclu_exclu_names = _join_detection_config(excludes, includes)
     return inclu_exclu_marks + inclu_exclu_names + report + coverage + folders
 
 
 def _join_detection_config(excludes, includes):
+    def join_options(inclu, exclu):
+        if inclu and exclu:
+            return [exclu[0] & inclu[0]]
+        else:
+            return exclu + inclu
+
+    def extract_single_option(check_func, inclu, exclu):
+        include_options, exclude_options = [
+            list(filter(check_func, filter_type))
+            for filter_type in (inclu, exclu)
+        ]
+        return join_options(include_options, exclude_options)
+
     is_mark = lambda x: isinstance(x, Mark)
     is_name_pattern = lambda x: isinstance(x, NamePattern)
-    exclude_marks = list(filter(is_mark, excludes))
-    include_makrs = list(filter(is_mark, includes))
-    if include_makrs and exclude_marks:
-        inclu_exclu = [exclude_marks[0] & include_makrs[0]]
-    else:
-        inclu_exclu = include_makrs + exclude_marks
-
-    exclude_names = list(filter(is_name_pattern, excludes))
-    include_names = list(filter(is_name_pattern, includes))
-    if include_names and exclude_names:
-        inclu_exclu_names = [exclude_names[0] & include_names[0]]
-    else:
-        inclu_exclu_names = include_names + exclude_names
-    return inclu_exclu, inclu_exclu_names
+    return (
+        extract_single_option(is_mark, includes, excludes),
+        extract_single_option(is_name_pattern, includes, excludes)
+    )
 
 
 class RunPyTest(RunCommand):
@@ -176,7 +180,7 @@ def test(unittest=None, **kwargs):
 
     if kwargs:
         test_config['all'] = {}
-        root.register(test_route/TestingStage('all'))(lambda y: y)(all_test_cmds)
+        root.register(test_route / TestingStage('all'))(lambda y: y)(all_test_cmds)
     return test_config
 
 

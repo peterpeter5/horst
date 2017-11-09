@@ -30,7 +30,6 @@ def test_dry_run_with_tests(runner):
     with isolated_horst_project(horst_with_no_tests, runner) as build_file:
         result = runner.invoke(cli(build_file), ['-d', 'test'])
         lines = get_output_checked(result).splitlines()
-        dirname = os.path.dirname(build_file)
         assert "pytest --color=yes unit" in lines[-1]
 
 
@@ -47,4 +46,7 @@ def test_run_tests_that_fail(runner):
         assert result.exit_code != 0
         stage_results = get_stage_result_from_output(result.output)
         assert stage_results == [("test", "UP-TO-DATE"), ("test:unittest", "ERROR")]
+        assert "assert False" in result.output
+
+
 

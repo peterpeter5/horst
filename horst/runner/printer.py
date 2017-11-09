@@ -24,7 +24,7 @@ class Printer:
         self._progress_line_length = 0
         size = get_terminal_size((20, 20)).columns - 2
         stream = click.get_binary_stream("stdout")
-        isatty = stream.isatty()
+        isatty = stream.isatty() or os.environ.get("_TEST_HORST_", False)
         yield noop(0) if not isatty else self.signal_progress(0, size)
         # print("max len", size)
         self._clear_current_line(size) if isatty else noop()

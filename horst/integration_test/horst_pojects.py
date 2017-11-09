@@ -1,5 +1,7 @@
 import re
+from collections import defaultdict
 from contextlib import contextmanager
+from functools import partial
 from os import path
 import os
 
@@ -11,14 +13,44 @@ def get_output_checked(result):
     return output
 
 
+# def get_stage_result_from_output(output):
+#     out_signal = "|-->"
+#     output_lines = output.splitlines()
+#     return [
+#         (re.findall(r"\[stage\] \[(.+)\]", output_lines[number - 1])[0], line.replace(out_signal, "").strip())
+#         for number, line in enumerate(output_lines)
+#         if line.startswith("\t%s" % out_signal)
+#     ]
+
+
 def get_stage_result_from_output(output):
+    stage_results = defaultdict(list)
     out_signal = "|-->"
-    output_lines = output.splitlines()
+
+    def nothing(stage, line):
+        parsed_stage = re.findall(r"\[stage\] \[(.+)\]", line)
+        stage = stage if not parsed_stage else parsed_stage[0]
+        if out_signal in line:
+            return result(stage, line)
+        else:
+            return partial(nothing, stage)
+
+    def result(current_stage, line):
+        if line.startswith("\t%s" % out_signal):
+            stage_results[current_stage].append(line.replace(out_signal, "").strip())
+            return partial(result, current_stage)
+        elif out_signal in line:
+            return partial(result, current_stage)
+        else:
+            return nothing(current_stage, line)
+    parser = nothing("", "")
+    for line in output.splitlines():
+        parser = parser(line)
     return [
-        (re.findall(r"\[stage\] \[(.+)\]", output_lines[number - 1])[0], line.replace(out_signal, "").strip())
-        for number, line in enumerate(output_lines)
-        if line.startswith("\t%s" % out_signal)
+        (name, stage_res[0] if len(stage_res) == 1 else stage_res)
+        for name, stage_res in stage_results.items()
     ]
+
 
 
 def get_command_section(output):
@@ -34,8 +66,10 @@ def horst_project(conf_func, folder):
 @contextmanager
 def isolated_horst_project(conf_func, runner):
     with runner.isolated_filesystem() as folder, horst_project(conf_func, folder):
+        os.environ["_TEST_HORST_"] = "True"
         conf_func(folder)
         yield path.join(folder, "build.py")
+        os.environ.pop("_TEST_HORST_")
 
 
 def minimal_horst(folder):

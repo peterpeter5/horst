@@ -41,7 +41,15 @@ test(
     slow=pytest(
         exclude=[not_marked_as("slow")],
         coverage=pytest_coverage(
+            report=["html", "term"],
             append=True,
+            min=95
+        )
+    ),
+    bus=pytest(
+        exclude=[marked_as("internet")],
+        coverage=pytest_coverage(
+            report=["html", "term"],
             min=95
         )
     )

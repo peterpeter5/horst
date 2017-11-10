@@ -23,7 +23,7 @@ def get_output_checked(result):
 #     ]
 
 
-def get_stage_result_from_output(output):
+def get_stage_results(output):
     stage_results = defaultdict(list)
     out_signal = "|-->"
 
@@ -43,6 +43,7 @@ def get_stage_result_from_output(output):
             return partial(result, current_stage)
         else:
             return nothing(current_stage, line)
+
     parser = nothing("", "")
     for line in output.splitlines():
         parser = parser(line)
@@ -50,7 +51,6 @@ def get_stage_result_from_output(output):
         (name, stage_res[0] if len(stage_res) == 1 else stage_res)
         for name, stage_res in stage_results.items()
     ]
-
 
 
 def get_command_section(output):
@@ -76,9 +76,16 @@ def minimal_horst(folder):
     with open(path.join(folder, "build.py"), "w") as file:
         file.write("""
 from horst import *
-Horst(__file__)
-
-dependencies(environment=virtualenv())
+Horst(__file__, "unit")
+package(
+    name="unit",
+    version="0.0.0",
+    description="short",
+    long_description="long",
+    url="/not/there/",
+)
+dependencies()
+test()
 
 """)
 
@@ -120,7 +127,7 @@ from horst import test
 Horst(__file__, 'unit')
 test(funny=pytest())        
 """
-        )
+                   )
     package_path = path.join(folder, "unit")
     if not path.exists(package_path):
         os.mkdir(package_path)

@@ -59,6 +59,7 @@ def test_run_env_create_works_like_expected(runner):
 
 
 @pytest.mark.slow
+@pytest.mark.internet
 def test_run_env_update_will_create_an_environment_before_installing_deps(runner):
     with runner.isolated_filesystem() as folder, horst_project(horst_with_dependencies, folder) as build_file:
         result = runner.invoke(cli(build_file), ['-v', "env:update"])

@@ -44,21 +44,19 @@ class DeleteFileOrFolder(EffectBase):
         self.file_of_folder = abspath
 
 
-class CreateFile(EffectBase):
-
+class _FileOp(EffectBase):
     def __init__(self, file_path, content):
         self.file_path = file_path
         self.content = content
+
+
+class CreateFile(_FileOp):
 
     def __repr__(self):
         return "[CreateFile] : <%s> : at <%s>" % tuple(reversed(path.split(self.file_path)))
 
 
-class UpdateFile(EffectBase):
-
-    def __init__(self, file_path, content):
-        self.file_path = file_path
-        self.line_and_content = content
+class UpdateFile(_FileOp):
 
     def __repr__(self):
         _, filename = path.split(self.file_path)

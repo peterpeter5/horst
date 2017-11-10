@@ -1,7 +1,7 @@
 import subprocess
 
 from horst import get_horst, get_project_path
-from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand
+from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand, DeleteFileOrFolder
 from .rules import root, build, create_setup, update_setup, run_setup, clean_up
 from os import path
 
@@ -45,6 +45,7 @@ def package(name, version, description, long_description=None, url=None):
     _create_setup(path_to_setup)
     _update_setup(path_to_setup, setup_config)
     _run_bdist_wheel()
+    _clean_install_fragments()
     return setup_config
 
 
@@ -60,14 +61,17 @@ def _update_setup(setup_path, config):
     return [UpdateFile(setup_path, content)]
 
 
-@root.register(build / create_setup / update_setup / run_setup)
-def _run_bdist_wheel():
-    return [RunCommand("python", ["setup.py", "bdist_wheel"])]
+@root.register(build / create_setup / update_setup / run_setup, "build/wheel")
+def _run_bdist_wheel(clean_intermediates=True):
+    clean_up = [] if not clean_intermediates else _clean_install_fragments()
+
+    return [RunCommand("python", ["setup.py", "bdist_wheel"])] + clean_up
 
 
-@root.register(build / create_setup / update_setup / run_setup / clean_up, "build/wheel")
 def _clean_install_fragments():
-    folders = ["build", "*egg-info", ]
+    folders = ["build", "%s.egg-info" % get_horst().package_name]
+    project_base_path = get_project_path()
+    return [DeleteFileOrFolder(path.join(project_base_path, folder)) for folder in folders]
 
 
 def _render_setuppy(config):

@@ -7,7 +7,8 @@ import subprocess
 from horst.testing import RunPyTest
 from functools import partial
 from .result import Ok, Error, UpToDate, Dry
-from os import path, os
+from os import path
+import os
 
 
 class _NoOp:
@@ -53,7 +54,8 @@ def _run_command(action, printer):
                 break
     error_stream = proc.stderr.readlines()
     result_type = Ok if rt_code == 0 else Error
-    return result_type("".join(lines + list(map(lambda x: x.decode(), error_stream))).strip(), rt_code)
+    content = "".join(lines + list(map(lambda x: x.decode(), error_stream))).strip()
+    return result_type(content, rt_code)
 
 
 @execute.register(RunPyTest)
@@ -69,13 +71,13 @@ def _(action, printer):
 @execute.register(CreateFile)
 def _(action, printer):
     """
-    :type action: UpdateFile
+    :type action: UpdateFile|CreateFile
     :param printer:
     :return:
     """
     try:
         with open(action.file_path, "w") as file:
-            file.write(action.line_and_content)
+            file.write(action.content)
             return Ok("Updated file: %s" % action.file_path)
     except (FileNotFoundError, PermissionError) as error:
         return Error(repr(error))
@@ -83,12 +85,13 @@ def _(action, printer):
 
 @execute.register(DeleteFileOrFolder)
 def _(action, printer):
-    _type, delete = ("Folder", shutil.rmtree) if path.isdir(action) else ("File", os.remove)
+    abspath = action.file_of_folder
+    _type, delete = ("Folder", shutil.rmtree) if path.isdir(abspath) else ("File", os.remove)
     try:
-        delete(action)
+        delete(abspath)
         return Ok("Deleted %s" % _type)
 
-    except PermissionError as error:
+    except (FileNotFoundError, PermissionError) as error:
         return Error(repr(error))
 
 

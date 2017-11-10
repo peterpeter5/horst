@@ -2,8 +2,9 @@ import pytest
 from os import path
 
 from horst import Horst
-from horst.build import from_git_config, _render_setuppy, _create_setup, _update_setup
-from horst.effects import CreateFile, UpdateFile
+from horst.build import from_git_config, _render_setuppy, _create_setup, _update_setup, _clean_install_fragments, \
+    _run_bdist_wheel
+from horst.effects import CreateFile, UpdateFile, DeleteFileOrFolder, RunCommand
 
 
 @pytest.fixture()
@@ -65,4 +66,22 @@ def test_update_setuppy(setup_config):
     assert isinstance(update_setup, list)
     assert len(update_setup) == 1
     assert isinstance(update_setup[0], UpdateFile)
+
+
+def test_clean_install_fragments(horst):
+    delete_folders = _clean_install_fragments()
+    base = horst.project_path
+    expected_folders = [path.join(base, "build"), path.join(base, "horst.egg-info")]
+    assert delete_folders == [DeleteFileOrFolder(name) for name in expected_folders]
+
+
+def test_bdist_wheel_cmd_without_clean(horst):
+    cmds = _run_bdist_wheel(clean_intermediates=False)
+    assert cmds == [RunCommand("python", ["setup.py", "bdist_wheel"])]
+
+
+def test_bdist_wheel_with_cleanup(horst):
+    cmds = _run_bdist_wheel(clean_intermediates=True)
+    assert len(cmds) > 1
+    assert isinstance(cmds[-1], DeleteFileOrFolder)
 

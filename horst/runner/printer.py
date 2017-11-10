@@ -71,13 +71,13 @@ class Printer:
     def print_effect_result(self, task, task_reslut):
         _is = partial(isinstance, task_reslut)
         if _is(Ok):
-            result_format = ("OK", 'green') 
+            result_format = ("OK {}".format(task), 'green')
         elif _is(UpToDate):
             result_format = ("UP-TO-DATE", 'yellow')
         elif _is(Dry):
             result_format = ("Tasks that would run:", 'cyan')
         elif _is(Error):
-            result_format = ("ERROR", "red", True)
+            result_format = ("ERROR {}".format(task), "red", True)
         else:
             result_format = ("Oooppsala", 'magenta')
 

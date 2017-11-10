@@ -13,16 +13,6 @@ def get_output_checked(result):
     return output
 
 
-# def get_stage_result_from_output(output):
-#     out_signal = "|-->"
-#     output_lines = output.splitlines()
-#     return [
-#         (re.findall(r"\[stage\] \[(.+)\]", output_lines[number - 1])[0], line.replace(out_signal, "").strip())
-#         for number, line in enumerate(output_lines)
-#         if line.startswith("\t%s" % out_signal)
-#     ]
-
-
 def get_stage_results(output):
     stage_results = defaultdict(list)
     out_signal = "|-->"
@@ -37,7 +27,11 @@ def get_stage_results(output):
 
     def result(current_stage, line):
         if line.startswith("\t%s" % out_signal):
-            stage_results[current_stage].append(line.replace(out_signal, "").strip())
+
+            linresult = line.replace(out_signal, "").strip()
+            regex = re.findall("(\w+)[ ]\[", linresult)
+            linresult = regex[0] if regex else linresult
+            stage_results[current_stage].append(linresult)
             return partial(result, current_stage)
         elif out_signal in line:
             return partial(result, current_stage)

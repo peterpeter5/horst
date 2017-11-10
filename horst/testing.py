@@ -160,6 +160,9 @@ class RunPyTest(RunCommand):
     def __init__(self, options):
         super(RunPyTest, self).__init__("pytest", options)
 
+    def __format__(self, format_spec):
+        return "[run tests]"
+
 
 @root.config(test_route)
 def test(unittest=None, **kwargs):

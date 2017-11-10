@@ -31,7 +31,11 @@ def test_dry_run_is_an_transparent_proxy_for_an_effect():
 def test_effect_and_dry_implement_display_protocol():
     a = A()
     d = DryRun(a)
-    assert a.__display__() == d.__display__() 
+    assert a.__display__() == d.__display__()
+
+
+def test_effect_implements_format_protocol():
+    assert "{}".format(A()) == "A"
 
 
 def test_run_option_implements_str_protocol():

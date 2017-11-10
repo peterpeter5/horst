@@ -17,7 +17,6 @@ class DryRun:
 
 
 class EffectBase:
-
     verbose = True
 
     def __repr__(self):
@@ -29,6 +28,9 @@ class EffectBase:
     def __display__(self):
         return self.__repr__()
 
+    def __format__(self, format_spec):
+        return repr(self)
+
 
 class ErrorBase:
     def __init__(self, reason):
@@ -37,11 +39,18 @@ class ErrorBase:
     def __repr__(self):
         return "[Error] : [%s] : Reason: %s" % (self.__class__.__name__, self.reason)
 
+    def __format__(self, format_spec):
+        return repr(self)
+
 
 class DeleteFileOrFolder(EffectBase):
 
     def __init__(self, abspath):
         self.file_of_folder = abspath
+
+    def __format__(self, format_spec):
+        _, name = path.split(self.file_of_folder)
+        return "[delete file/folder: %s]" % name
 
 
 class _FileOp(EffectBase):
@@ -55,12 +64,20 @@ class CreateFile(_FileOp):
     def __repr__(self):
         return "[CreateFile] : <%s> : at <%s>" % tuple(reversed(path.split(self.file_path)))
 
+    def __format__(self, format_spec):
+        _, name = path.split(self.file_path)
+        return "[create file: %s]" % name
+
 
 class UpdateFile(_FileOp):
 
     def __repr__(self):
         _, filename = path.split(self.file_path)
         return "[UpdateFile] : <%s> " % filename
+
+    def __format__(self, format_spec):
+        _, name = path.split(self.file_path)
+        return "[update file: %s]" % name
 
 
 class RunCommand(EffectBase):
@@ -85,11 +102,10 @@ class RunOption:
 
     def __str__(self):
         return "-" * self.hyphens + \
-            ('%s="%s"' % (self.name, str(self.value)) if self.value is not None else self.name)
+               ('%s="%s"' % (self.name, str(self.value)) if self.value is not None else self.name)
 
     def __eq__(self, other):
         return str(self) == str(other)
 
     def __repr__(self):
         return str(self)
- 

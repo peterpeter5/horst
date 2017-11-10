@@ -14,6 +14,9 @@ class CreateEnv(RunCommand):
     def __repr__(self):
         return str(self)
 
+    def __format__(self, format_spec):
+        return "[create env]"
+
 
 class UpdateEnv(RunCommand):
     def __init__(self, virt_env_path, dependencies):
@@ -24,6 +27,9 @@ class UpdateEnv(RunCommand):
 
     def __display__(self):
         return "pip install %s" % " ".join(self.dependencies)
+
+    def __format__(self, format_spec):
+        return "[update env]"
 
 
 def _is_linux():

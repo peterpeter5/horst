@@ -3,6 +3,9 @@ import subprocess
 from horst import get_horst, get_project_path
 from horst.effects import EffectBase
 from .rules import root, build
+from os import path
+
+_here = path.dirname(__file__)
 
 
 class Versioning(EffectBase):
@@ -11,8 +14,6 @@ class Versioning(EffectBase):
 
 
 def from_git_config(*values):
-    def one_of_in(line, values):
-        return any(val in line for val in values)
     project_path = get_project_path()
     result = subprocess.run(
         "git config -l",
@@ -21,6 +22,7 @@ def from_git_config(*values):
         check=True,
         cwd=project_path
     )
+    # TODO cache result...
     return {
         val: line.split("=")[1]
         for line in result.stdout.decode().splitlines()
@@ -29,8 +31,16 @@ def from_git_config(*values):
     }
 
 
-
 @root.config(build)
 def package(name, version, description, long_description=None, url=None):
     horst = get_horst()
     horst.register_release(Versioning(version))
+
+
+def _render_setuppy(config):
+    with open(path.join(_here, "templates", "setuppy.template")) as file:
+        content = file.read()
+
+    formatted_content = content.format(**config)
+    return formatted_content
+

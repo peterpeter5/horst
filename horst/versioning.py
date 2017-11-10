@@ -41,7 +41,7 @@ def bumpversion(files=None, git=True, tag=True):
 
 def _render_int_bump_config(files, git, tag):
 
-    with open(path.join(_here, 'bumpversion.template')) as template_content:
+    with open(path.join(_here, 'templates', 'bumpversion.template')) as template_content:
         template = Template(template_content.read(),
                             trim_blocks=True, lstrip_blocks=True)
         return template.render(files=files, commit=git, tag=tag)

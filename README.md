@@ -45,6 +45,13 @@ Now you have a new virtualenv in your main-folder called ".env"
 horst test
 ```
 
+8. devlop some more code and build your package as a wheel
+```
+horst build
+```
+
+9. release your build
+
 
 
 ## what it is

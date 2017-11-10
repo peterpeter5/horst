@@ -24,6 +24,8 @@ dependencies(
 package(
     name="horst",
     version=bumpversion(),
+    description="Horst is a simple build-automation-tool for python packages",
+    url=from_git_config("origin"),
 )
 
 

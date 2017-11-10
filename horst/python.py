@@ -1,18 +1,8 @@
-from .horst import get_horst, get_project_path
-from horst.effects import EffectBase, ErrorBase, RunCommand
+from .horst import get_project_path
+from horst.effects import RunCommand
 import os
 from .rules import root, env, create, update, configure_or_default
 from functools import reduce
-
-
-class Versioning(EffectBase):
-    def __init__(self, commands):
-        self.commands = commands
-
-
-def package(name, version):
-    horst = get_horst()
-    horst.register_release(Versioning(version))
 
 
 class CreateEnv(RunCommand):

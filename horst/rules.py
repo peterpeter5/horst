@@ -1,5 +1,4 @@
-from copy import copy
-from functools import wraps, reduce
+from functools import wraps
 
 
 class _Stage:
@@ -109,6 +108,10 @@ class TestingStage(_Stage):
     pass
 
 
+class Build(_Stage):
+    pass
+
+
 root = Engine()
 env = VirtualEnv("env")
 create = VirtualEnv("create")
@@ -116,3 +119,7 @@ update = VirtualEnv("update")
 
 test = TestingStage("test")
 unittest = TestingStage("unittest")
+
+build = Build("build")
+create_setup = Build("create_setup")
+update_setup = Build("update_setup")

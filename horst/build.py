@@ -1,8 +1,8 @@
 import subprocess
 
 from horst import get_horst, get_project_path
-from horst.effects import EffectBase
-from .rules import root, build
+from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand
+from .rules import root, build, create_setup, update_setup, run_setup, clean_up
 from os import path
 
 _here = path.dirname(__file__)
@@ -33,8 +33,41 @@ def from_git_config(*values):
 
 @root.config(build)
 def package(name, version, description, long_description=None, url=None):
-    horst = get_horst()
-    horst.register_release(Versioning(version))
+    project_path = get_project_path()
+    path_to_setup = path.join(project_path, "setup.py")
+    setup_config = dict(
+        name=name,
+        version=version,
+        description=description,
+        long_description=long_description,
+        url=url
+    )
+    _create_setup(path_to_setup)
+    _update_setup(path_to_setup, setup_config)
+    _run_bdist_wheel()
+    return setup_config
+
+
+@root.register(build / create_setup)
+def _create_setup(setup_path):
+    return [CreateFile(setup_path, " ")] if not path.exists(setup_path) else []
+
+
+@root.register(build / create_setup / update_setup, "build/update_setup")
+def _update_setup(setup_path, config):
+    # TODO sanity_check
+    content = _render_setuppy(config)
+    return [UpdateFile(setup_path, content)]
+
+
+@root.register(build / create_setup / update_setup / run_setup)
+def _run_bdist_wheel():
+    return [RunCommand("python", ["setup.py", "bdist_wheel"])]
+
+
+@root.register(build / create_setup / update_setup / run_setup / clean_up, "build/wheel")
+def _clean_install_fragments():
+    folders = ["build", "*egg-info", ]
 
 
 def _render_setuppy(config):
@@ -43,4 +76,3 @@ def _render_setuppy(config):
 
     formatted_content = content.format(**config)
     return formatted_content
-

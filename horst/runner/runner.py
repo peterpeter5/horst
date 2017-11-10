@@ -1,12 +1,13 @@
+import shutil
 from functools import singledispatch
-
 from horst import get_project_path
-from horst.effects import DryRun, RunCommand 
+from horst.effects import DryRun, RunCommand, UpdateFile, CreateFile, DeleteFileOrFolder
 import warnings
 import subprocess
 from horst.testing import RunPyTest
 from functools import partial
 from .result import Ok, Error, UpToDate, Dry
+from os import path, os
 
 
 class _NoOp:
@@ -19,7 +20,7 @@ class _NoOp:
 @singledispatch
 def execute(effect, *args, **kwargs):
     warnings.warn("No Executor specified for action: <%s>" % str(effect.__class__))
-    return -1, None
+    return Error("No Runner defined for action: <%s>" % str(effect.__class__))
 
 
 @execute.register(DryRun)
@@ -48,7 +49,7 @@ def _run_command(action, printer):
             spinner = spinner(line.decode())
             lines.append(line.decode())
             rt_code = proc.poll()
-            if  rt_code is not None and not line:
+            if rt_code is not None and not line:
                 break
     error_stream = proc.stderr.readlines()
     result_type = Ok if rt_code == 0 else Error
@@ -64,8 +65,36 @@ def _(action, printer):
         return result
 
 
+@execute.register(UpdateFile)
+@execute.register(CreateFile)
+def _(action, printer):
+    """
+    :type action: UpdateFile
+    :param printer:
+    :return:
+    """
+    try:
+        with open(action.file_path, "w") as file:
+            file.write(action.line_and_content)
+            return Ok("Updated file: %s" % action.file_path)
+    except (FileNotFoundError, PermissionError) as error:
+        return Error(repr(error))
+
+
+@execute.register(DeleteFileOrFolder)
+def _(action, printer):
+    _type, delete = ("Folder", shutil.rmtree) if path.isdir(action) else ("File", os.remove)
+    try:
+        delete(action)
+        return Ok("Deleted %s" % _type)
+
+    except PermissionError as error:
+        return Error(repr(error))
+
+
 def execute_stage(stage, printer):
     named_results = []
+    stop_stage = False
     for name, tasks in stage:
         printer.print_stage(name)
         parallel_tasks = tasks if tasks else [_NoOp(name)]
@@ -74,4 +103,9 @@ def execute_stage(stage, printer):
             result = execute(single_task, printer=printer)
             printer.print_effect_result(single_task, result)
             named_results.append((name, result))
+            if isinstance(result, Error):
+                stop_stage = True
+        if stop_stage:
+            break
+
     return named_results

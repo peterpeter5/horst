@@ -38,6 +38,12 @@ class ErrorBase:
         return "[Error] : [%s] : Reason: %s" % (self.__class__.__name__, self.reason)
 
 
+class DeleteFileOrFolder(EffectBase):
+
+    def __init__(self, abspath):
+        self.file_of_folder = abspath
+
+
 class CreateFile(EffectBase):
 
     def __init__(self, file_path, content):
@@ -45,14 +51,14 @@ class CreateFile(EffectBase):
         self.content = content
 
     def __repr__(self):
-        return "[CreateFile] : <%s> : at <%s>" % list(reversed(path.split(self.file_path)))
+        return "[CreateFile] : <%s> : at <%s>" % tuple(reversed(path.split(self.file_path)))
 
 
 class UpdateFile(EffectBase):
 
-    def __init__(self, file_path, lineno_content):
+    def __init__(self, file_path, content):
         self.file_path = file_path
-        self.line_and_content = lineno_content
+        self.line_and_content = content
 
     def __repr__(self):
         _, filename = path.split(self.file_path)

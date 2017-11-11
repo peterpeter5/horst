@@ -1,7 +1,5 @@
 import click
 import os
-from functools import partial
-from horst import get_horst
 from horst.effects import DryRun
 from horst.rules import finalize_stage
 from horst.runner.result import Error

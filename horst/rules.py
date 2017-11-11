@@ -1,4 +1,5 @@
-from functools import wraps
+from functools import wraps, reduce
+from itertools import chain
 
 
 class _Stage:
@@ -6,26 +7,50 @@ class _Stage:
     def __init__(self, name=None):
         self._chain = [self]
         self._tasks = []
+        self._depends_on = None
         self._name = name
+        self._transformer = lambda x: x
+
+    @property
+    def depends_on(self):
+        return self._depends_on if not callable(self._depends_on) else self._depends_on()
+
+    @property
+    def pending(self):
+        return False if self.depends_on is None else True
 
     @property
     def name(self):
         return self._name if self._name is not None else self.__class__.__name__
 
+    def task_transformer(self, func):
+        self._transformer = func
+
     def __truediv__(self, other):
-        if not isinstance(other, _Stage):
+        if isinstance(other, _Stage):
+            route = _Route([self])
+            return route / other
+        elif isinstance(other, _Route):
+            return reduce(lambda first, sec: first / sec, other.to_stages(), self)
+        else:
             raise TypeError("division between %s and %s is not definined" % (
                 self.__class__, other.__class__))
 
-        route = _Route(self)
-        return route / other
-
     @property
     def tasks(self):
-        return self._tasks[-1] if len(self._tasks) != 0 else self._tasks
+        return tuple(
+            self._transformer(task)
+            for task in (self._tasks[-1] if len(self._tasks) != 0 else self._tasks)
+        )
 
     def register_tasks(self, tasks):
-        self._tasks.append(tasks)
+        tasks = tasks if tasks is not None else []
+        self._tasks.append(tuple(tasks))
+        return self
+
+    def register_depends_on(self, stage_fut):
+        self._depends_on = stage_fut
+        return self
 
     def __str__(self):
         return self.name
@@ -34,14 +59,21 @@ class _Stage:
 class _Route:
 
     def __init__(self, node):
-        self._chain = [node]
+        self._chain = node
 
     def __truediv__(self, other):
-        if not isinstance(other, _Stage):
+        if isinstance(other, _Stage):
+            self._chain.append(other)
+            return self
+        elif isinstance(other, _Route):
+            return reduce(lambda left, right: left / right, chain(self.to_stages(), other.to_stages()))
+        else:
             raise TypeError("division between %s and %s is not definined" % (
                 self.__class__, other.__class__))
-        self._chain.append(other)
-        return self
+
+    def task_transformer(self, func):
+        for stage in self:
+            stage.task_transformer(func)
 
     @property
     def tasks(self):
@@ -56,6 +88,17 @@ class _Route:
     def register_tasks(self, tasks):
         self._chain[-1].register_tasks(tasks)
 
+    @property
+    def pending(self):
+        return self._chain[0].pending
+
+    @property
+    def depends_on(self):
+        return self._chain[0].depends_on
+
+    def to_stages(self):
+        return (stage for stage in self._chain)
+
 
 class Engine:
 
@@ -68,10 +111,13 @@ class Engine:
             @wraps(func)
             def wrapper(*args, **kwargs):
                 config = func(*args, **kwargs)
+                config, dependend = config
                 self._config[func.__name__] = config
+                stage.register_depends_on(dependend)
                 return config
 
             return wrapper
+
         return _inner
 
     def register(self, stages, route=None):
@@ -93,6 +139,26 @@ class Engine:
 
     def get_stages(self):
         return self._stages
+
+
+def depends_on_stage(root, path_list):
+    def find_best_suitable_stage():
+        stages = root.get_stages()
+        for path in path_list:
+            if path in stages:
+                return stages[path]
+        else:
+            return []
+
+    return find_best_suitable_stage
+
+
+def finalize_stage(stage_route, task_transformation=lambda x: x):
+    stage_route.task_transformer(task_transformation)
+    if stage_route.pending:
+        return finalize_stage(stage_route.depends_on, task_transformation) / stage_route
+    else:
+        return stage_route
 
 
 def configure_or_default(variable, default_config):

@@ -7,5 +7,6 @@ setup(
     version="{version}",
     description="{description}",
     long_description="{long_description}",
-    url="{url}"
+    url="{url}",
+    packages={packages}
 )

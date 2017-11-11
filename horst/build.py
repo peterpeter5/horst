@@ -1,8 +1,10 @@
 import subprocess
 
+from setuptools import find_packages
+
 from horst import get_horst, get_project_path
 from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand, DeleteFileOrFolder
-from .rules import root, build, create_setup, update_setup, run_setup, clean_up
+from .rules import root, build, create_setup, update_setup, run_setup, clean_up, configure_or_default, depends_on_stage
 from os import path
 
 _here = path.dirname(__file__)
@@ -32,21 +34,30 @@ def from_git_config(*values):
 
 
 @root.config(build)
-def package(name, version, description, long_description=None, url=None):
+def package(name, version, description, long_description=None, url=None, packages=None):
+    long_description = string_or_return_empty_one(long_description)
+    url = string_or_return_empty_one(url)
+
     project_path = get_project_path()
+    packages = configure_or_default(packages, find_packages)
     path_to_setup = path.join(project_path, "setup.py")
     setup_config = dict(
         name=name,
         version=version,
         description=description,
         long_description=long_description,
-        url=url
+        url=url,
+        packages=packages,
     )
     _create_setup(path_to_setup)
     _update_setup(path_to_setup, setup_config)
     _run_bdist_wheel()
     _clean_install_fragments()
-    return setup_config
+    return setup_config, depends_on_stage(root, ["test:build", "test:all", "test"])
+
+
+def string_or_return_empty_one(value):
+    return value if isinstance(value, str) else ""
 
 
 @root.register(build / create_setup)

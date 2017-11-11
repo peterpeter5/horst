@@ -24,6 +24,7 @@ def setup_config():
         description="short",
         long_description="long",
         url="/url/to",
+        packages=[],
     )
 
 
@@ -48,7 +49,7 @@ setup(
     version="1",
     description="short",
     long_description="long",
-    url="/url/to"
+    url="/url/to",
 """
     assert rendred_setuppy.startswith(expected_text)
 

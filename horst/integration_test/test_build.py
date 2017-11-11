@@ -19,11 +19,18 @@ def test_horst_can_build_wheel_cmd_is_in_overview(runner):
         assert "build:wheel" in commands
 
 
+def test_horst_dry_build_wheel_shows_complete_graph(runner):
+    with isolated_horst_project(minimal_horst, runner) as build_file:
+        result = runner.invoke(cli(build_file), ["-d", "build:wheel"])
+
+
 def test_horst_can_build_eventhough_no_setup_is_available(runner):
     with isolated_horst_project(minimal_horst, runner) as build_file:
         result = runner.invoke(cli(build_file), ["build:wheel"])
         stage_results = get_stage_results(get_output_checked(result))
         expected_results = [
+            ("test", UTD),
+            ("test:unittest", UTD),
             ("build", UTD),
             ("build:create_setup", "OK"),
             ("build:create_setup:update_setup", "OK"),

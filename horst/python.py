@@ -36,14 +36,14 @@ def _is_linux():
     return os.name == 'posix'
 
 
-@root.config(env / create)
+@root.config(create)
 def virtualenv(config=None):
     if config is None:
         config = {".env": {"python": "python"}}
     for name, config in config.items():
         config = {'name': name, **config}
     _create_environment(config)
-    return config
+    return config, None
 
 
 @root.register(env / create)
@@ -78,4 +78,4 @@ def dependencies(install=[], build=[], test=[], versions=[], environment=None):
         versions=versions
     )
     _update_environment(deps, environment)
-    return deps
+    return deps, None

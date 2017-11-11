@@ -6,6 +6,7 @@ setup(
     name="horst",
     version="0.0.1",
     description="Horst is a simple build-automation-tool for python packages",
-    long_description="None",
-    url="{'origin': '+refs/heads/*:refs/remotes/origin/*'}"
+    long_description="",
+    url="",
+    packages=['horst', 'horst.runner', 'horst.integration_test', 'horst.tests']
 )

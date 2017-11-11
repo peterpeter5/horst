@@ -82,6 +82,11 @@ dependencies()
 test()
 
 """)
+    if not path.exists(path.join(folder, "unit")):
+        os.mkdir(path.join(folder, "unit"))
+    with open(path.join(folder, "unit", "__init__.py"), "w") as file:
+        file.write("  ")
+
 
 
 def horst_with_dependencies(folder):

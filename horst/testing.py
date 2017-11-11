@@ -184,7 +184,7 @@ def test(unittest=None, **kwargs):
     if kwargs:
         test_config['all'] = {}
         root.register(test_route / TestingStage('all'))(lambda y: y)(all_test_cmds)
-    return test_config
+    return test_config, None
 
 
 @root.register(test_route / unittest, route="test")

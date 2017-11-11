@@ -3,6 +3,7 @@ import os
 from functools import partial
 from horst import get_horst
 from horst.effects import DryRun
+from horst.rules import finalize_stage
 from horst.runner.result import Error
 from horst.runner.runner import execute_stage
 from horst.runner.printer import Printer
@@ -55,11 +56,9 @@ class MyCli(click.MultiCommand):
         is_dry_run = ctx.params.get('dry', False)
         is_verbose = ctx.params.get('verbose', False)
         translation = get_horst().get_commands()
-        _stage = translation[name]
-        stage = [
-            (":".join(str(_stage).split(":")[0:num + 1]), tasks if not is_dry_run else list(map(DryRun, tasks)))
-            for num, tasks in enumerate(_stage.tasks)
-        ]
+        stage = translation[name]
+        task_transformation = (lambda x: x) if not is_dry_run else (lambda x: DryRun(x))
+        stage = finalize_stage(stage, task_transformation)
 
         gui = Printer(is_dry_run or is_verbose)
         func = partial(execute_stage, stage, printer=gui)

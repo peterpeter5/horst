@@ -1,4 +1,4 @@
-from ..rules import Engine, _Stage, env, create, update
+from ..rules import Engine, _Stage, env, create, update, depends_on_stage, finalize_stage
 import pytest
 
 
@@ -22,7 +22,7 @@ _second_stack_stage = C()
 
 @rules.config(A(""))
 def config_smthng(a, b):
-    return [a, b]
+    return [a, b], None
 
 
 @rules.register(_ab_stage)
@@ -69,13 +69,13 @@ def test_stage_has_name():
 def test_stages_and_routes_can_register_tasks():
     a = A()
     a.register_tasks(["a"])
-    assert a.tasks == ["a"]
+    assert a.tasks == ("a",)
 
     ab = a / B()
     ab.register_tasks(["a", "b"])
     ab_chain = list(ab)
-    assert ab_chain[0].tasks == ["a"]
-    assert ab_chain[1].tasks == ["a", "b"]
+    assert ab_chain[0].tasks == ("a",)
+    assert ab_chain[1].tasks == ("a", "b")
 
 
 def test_stages_give_a_tasks_chain_when_asked():
@@ -85,14 +85,25 @@ def test_stages_give_a_tasks_chain_when_asked():
     ab = a / B()
     ab.register_tasks((["a"], ["b"]))
     assert ab.tasks == [
-        ["a"],
+        ("a",),
         (["a"], ["b"])
     ]
 
 
+def test_stages_and_routes_can_have_a_transformation_function():
+    a = A()
+    a.register_tasks([1])
+    a.task_transformer(lambda x: x + 1)
+    assert a.tasks == (2,)
+
+    ab = A().register_tasks(["a"]) / B().register_tasks(["CA"])
+    ab.task_transformer(lambda x: x.upper())
+    assert ab.tasks == [("A",), ("CA",)]
+
+
 def test_rules_register_decorator_puts_config_results_on_stage():
     put_tasks_on_b()
-    expected_tasks = [[], ["b"]]
+    expected_tasks = [(), ("b",)]
     assert _ab_stage.tasks == expected_tasks
     assert rules._stages == {"A:B": _ab_stage}
 
@@ -123,7 +134,22 @@ def test_registered_task_lists_are_immutable():
 
 def test_stage_tasks_are_immutable_for_debugging_but_act_mutable():
     stage = _Stage("u")
-    stage.register_tasks("asdf")
-    stage.register_tasks("new task")
-    assert stage._tasks == ["asdf", "new task"]
-    assert stage.tasks == "new task"
+    stage.register_tasks(["asdf"])
+    stage.register_tasks(["new task"])
+    assert stage._tasks == [("asdf",), ("new task",)]
+    assert stage.tasks == ("new task",)
+
+
+def test_depends_on():
+    put_tasks_on_b()
+    tasks_with_custom_route()
+    assert str(A() / B()) == str(depends_on_stage(rules, ["A:B"])())
+    assert str(_ab_stage) == str(depends_on_stage(rules, ["a:c:a:b"])())
+    assert str(A() / B()) == str(depends_on_stage(rules, ["A:B", "a:c:a:b"])())
+
+
+def test_finalize_stage():
+    stage_a = A()
+    stage_a.register_depends_on(C())
+    route = stage_a / B()
+    assert str(finalize_stage(route)) == str(C() / A() / B())

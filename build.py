@@ -46,13 +46,6 @@ test(
             min=95
         )
     ),
-    bus=pytest(
-        exclude=[marked_as("internet")],
-        coverage=pytest_coverage(
-            report=["html", "term"],
-            min=95
-        )
-    )
 )
 
 # check(

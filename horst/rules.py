@@ -71,6 +71,14 @@ class _Route:
             raise TypeError("division between %s and %s is not definined" % (
                 self.__class__, other.__class__))
 
+    def __mod__(self, other):
+        if isinstance(other, _RouteChain):
+            return _RouteChain([self]) % other
+        elif isinstance(other, _Route):
+            return _RouteChain([self, other])
+        else:
+            raise TypeError("Only Routes can depend on each other")
+
     def task_transformer(self, func):
         for stage in self:
             stage.task_transformer(func)
@@ -98,6 +106,37 @@ class _Route:
 
     def to_stages(self):
         return (stage for stage in self._chain)
+
+    def iter_stagename_task(self):
+        stage_name_list = reduce(
+            lambda old_stages, stage: old_stages + [
+                (":".join([old_stages[-1][0], stage.name]), stage.tasks)
+            ],
+            self._chain[1:],
+            [(self._chain[0].name, self._chain[0].tasks)]
+        )
+        return stage_name_list
+
+
+class _RouteChain:
+
+    def __init__(self, routes):
+        self.routes = routes
+
+    def __mod__(self, other):
+        if isinstance(other, _RouteChain):
+            return _RouteChain(self.routes + other.routes)
+        elif isinstance(other, _Route):
+            return _RouteChain(self.routes + [other])
+        else:
+            raise TypeError("Only Routes can depend on each other")
+
+    def __str__(self):
+        return str([str(route) for route in self.routes])
+
+    def iter_stagename_task(self):
+        chained_iter_stage_task = ((name, task) for route in self.routes for name, task in route.iter_stagename_task())
+        return chained_iter_stage_task
 
 
 class Engine:
@@ -156,7 +195,7 @@ def depends_on_stage(root, path_list):
 def finalize_stage(stage_route, task_transformation=lambda x: x):
     stage_route.task_transformer(task_transformation)
     if stage_route.pending:
-        return finalize_stage(stage_route.depends_on, task_transformation) / stage_route
+        return finalize_stage(stage_route.depends_on, task_transformation) % stage_route
     else:
         return stage_route
 

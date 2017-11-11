@@ -96,9 +96,14 @@ def _(action, printer):
 
 
 def execute_stage(stage, printer):
+    """
+    :type stage: horst.rules._Route
+    :param printer:
+    :return:
+    """
     named_results = []
     stop_stage = False
-    for name, tasks in _named_stage(stage):
+    for name, tasks in stage.iter_stagename_task():
         printer.print_stage(name)
         parallel_tasks = tasks if tasks else [_NoOp(name)]
         # TODO execute in parallel!
@@ -112,10 +117,3 @@ def execute_stage(stage, printer):
             break
 
     return named_results
-
-
-def _named_stage(stage):
-    return (
-        (":".join(str(stage).split(":")[0:num + 1]), task)
-        for num, task in enumerate(stage.tasks)
-    )

@@ -1,4 +1,4 @@
-from ..rules import Engine, _Stage, env, create, update, depends_on_stage, finalize_stage
+from ..rules import Engine, _Stage, env, create, update, depends_on_stage, finalize_stage, _RouteChain
 import pytest
 
 
@@ -150,6 +150,34 @@ def test_depends_on():
 
 def test_finalize_stage():
     stage_a = A()
-    stage_a.register_depends_on(C())
+    cb_stage = C() / B()
+    stage_a.register_depends_on(cb_stage)
     route = stage_a / B()
-    assert str(finalize_stage(route)) == str(C() / A() / B())
+    assert str(finalize_stage(route)) == str([str(C() / B()), str(A() / B())])
+
+
+def test_one_can_iter_stagenames_tasks_over_routes():
+    route = A().register_tasks([1]) / B("BAS").register_tasks([2])
+    actual_iter = [(name, tasks) for name, tasks in route.iter_stagename_task()]
+    assert actual_iter == [("A", (1,)), ("A:BAS", (2,))]
+
+
+def test_iter_over_stagenames_tasks_on_long_chains():
+    long_route = A() / (B() / A("A2")) / C("CEND")
+    actual_iter = [name for name, _ in long_route.iter_stagename_task()]
+    assert actual_iter == [
+        "A",
+        "A:B",
+        "A:B:A2",
+        "A:B:A2:CEND"
+    ]
+
+
+def test_route_dependson_protocol():
+    ac = A() / C()
+    bc = B() / C()
+    bc_depends_on_ac = ac % bc
+    assert isinstance(bc_depends_on_ac, _RouteChain)
+    assert str(bc_depends_on_ac) == "['A:C', 'B:C']"
+    with pytest.raises(TypeError):
+        A() % bc

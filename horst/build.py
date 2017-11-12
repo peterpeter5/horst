@@ -4,6 +4,7 @@ from setuptools import find_packages
 
 from horst import get_horst, get_project_path
 from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand, DeleteFileOrFolder, StageConfigError
+from horst.release import release, release_route
 from .rules import root, build, create_setup, update_setup, run_setup, configure_or_default, depends_on_stage, \
     get_config_from_stage, env, setup
 from os import path
@@ -35,7 +36,7 @@ def from_git_config(*values):
 
 
 @root.config(build)
-def package(name=None, version=None, description=None, long_description=None, url=None, packages=None):
+def package(name=None, version=None, description=None, long_description=None, url=None, packages=None, releases=None):
     if name and version and description is None:
         yield StageConfigError("<name, version, description> must be specfied via <package>")
 
@@ -52,12 +53,14 @@ def package(name=None, version=None, description=None, long_description=None, ur
         url=url,
         packages=packages,
     )
+    releases = configure_or_default(releases, release)
     yield setup_config, depends_on_stage(root, ["test:build", "test:all", "test"])
     install_dependencies = get_config_from_stage(root, env)
+    build_options = get_config_from_stage(root, release_route)
     setup_config.update({'install_requires': install_dependencies["install"]})
     _create_setup(path_to_setup)
     _update_setup(path_to_setup, setup_config)
-    _run_bdist_wheel()
+    _run_bdist_wheel(build_options)
     _clean_install_fragments()
 
 
@@ -78,10 +81,11 @@ def _update_setup(setup_path, config):
 
 
 @root.register(build / create_setup / update_setup / run_setup, "build/wheel")
-def _run_bdist_wheel(clean_intermediates=True):
+def _run_bdist_wheel(build_options=None, clean_intermediates=True):
+    build_options = build_options if build_options is not None else build_options
     clean_up = [] if not clean_intermediates else _clean_install_fragments()
 
-    return [RunCommand("python", ["setup.py", "bdist_wheel"])] + clean_up
+    return [RunCommand("python", ["setup.py", "bdist_wheel"] + build_options)] + clean_up
 
 
 def _clean_install_fragments():

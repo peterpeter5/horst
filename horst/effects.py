@@ -63,6 +63,13 @@ class _FileOp(EffectBase):
         self.content = content
 
 
+class CopyTree(_FileOp):
+    pass
+
+    def __format__(self, format_spec):
+        return "[copy-tree: %s]" % self.file_path
+
+
 class CreateFile(_FileOp):
 
     def __repr__(self):

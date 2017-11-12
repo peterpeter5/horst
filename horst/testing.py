@@ -169,7 +169,6 @@ def test(unittest=None, **kwargs):
     unittest = configure_or_default(unittest, pytest)
     all_test_cmds = _run_unittest(unittest)
     test_config = {'unittest': unittest}
-    yield test_config, None
     for config_name, config in kwargs.items():
         all_run_options = all(map(lambda opt: isinstance(opt, (RunOption, str)), config))
         if all_run_options:
@@ -185,7 +184,7 @@ def test(unittest=None, **kwargs):
     if kwargs:
         test_config['all'] = {}
         root.register(test_route / TestingStage('all'))(lambda y: y)(all_test_cmds)
-
+    yield test_config, None
 
 
 @root.register(test_route / unittest, route="test")

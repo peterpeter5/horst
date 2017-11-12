@@ -271,6 +271,9 @@ class TestingStage(_Stage):
 class Build(_Stage):
     pass
 
+class Release(_Stage):
+    pass
+
 
 root = Engine()
 env = VirtualEnv("env")
@@ -286,3 +289,8 @@ create_setup = Build("create_setup")
 update_setup = Build("update_setup")
 run_setup = Build("build_wheel")
 clean_up = Build("clean_up")
+
+
+release_route = Release("release")
+wheel_route = Release("wheel")
+test_release = Release("test_release")

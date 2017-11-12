@@ -43,6 +43,10 @@ class ErrorBase:
         return repr(self)
 
 
+class StageConfigError(ErrorBase):
+    pass
+
+
 class DeleteFileOrFolder(EffectBase):
 
     def __init__(self, abspath):

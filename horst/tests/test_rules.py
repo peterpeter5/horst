@@ -23,7 +23,7 @@ _second_stack_stage = C()
 
 @rules.config(A("conf"))
 def config_smthng(a=0, b=0):
-    return [a, b], None
+    yield [a, b], None
 
 
 @rules.register(_ab_stage)
@@ -49,21 +49,50 @@ def test_config_function_reslut_is_saved_in_engine():
 
 def test_config_function_is_saved_in_engine_as_func_when_not_called():
     def a_func():
-        return 1
+        yield 1, None
 
     rules.config(B("hello"))(a_func)
-    assert rules._config["hello"].__name__ == a_func.__name__
+    assert rules._config_funcs["hello"].__name__ == a_func.__name__
 
 
 def test_get_config_from_stage():
     @rules.config(B("cello"))
     def a_func(a=0):
-        return a, None
+        yield a, None
 
     assert get_config_from_stage(rules, B()) == {}
+    assert get_config_from_stage(rules, "cello") == {}
+    rules.configure()
     assert get_config_from_stage(rules, "cello") == 0
+
     a_func(3)
     assert get_config_from_stage(rules, "cello") == 3
+
+    rules.configure()
+    assert get_config_from_stage(rules, "cello") == 3
+
+
+def test_config_decorator_error_results():
+    root = Engine()
+    @root.config(B("koi"))
+    def c_func(a=0):
+        return a
+
+    @root.config(B("stou"))
+    def d_func(a=0):
+        yield a
+
+    @root.config(B("finally"))
+    def fine(a=0):
+        yield a, None
+
+    with pytest.raises(TypeError):
+        c_func()
+
+    with pytest.raises(ValueError):
+        d_func()
+
+    assert 0 == fine()
 
 
 def test_stage_div_protocol_with_wrong_types():
@@ -194,7 +223,7 @@ def test_finalize_stage_with_before_after_and_depends_on():
 
     @rules.config(a_start)
     def conf():
-        return None, depends_on_stage(rules, ["C:C"])
+        yield None, depends_on_stage(rules, ["C:C"])
 
     @rules.register(C() / C())
     def c():

@@ -1,3 +1,4 @@
+import inspect
 from functools import wraps, reduce
 from itertools import chain
 
@@ -155,18 +156,27 @@ class Engine:
     def __init__(self):
         self._config = {}
         self._stages = {}
+        self._config_funcs = {}
 
     def config(self, stage):
         def _inner(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-                config = func(*args, **kwargs)
+                config_func = func(*args, **kwargs)
+                if not inspect.isgenerator(config_func):
+                    raise TypeError("func: <%s> does not yield. Config-funcs must yield!" % func.__name__)
+                config = next(config_func)
+                if not isinstance(config, (list, tuple)) or len(config) != 2:
+                    raise ValueError("func: <%s> returns not enough values! config must return (config, depends)" %
+                                     func.__name__
+                                     )
                 config, dependend = config
                 self._config[str(stage)] = config
+                self._config_funcs[str(stage)] = config_func
                 stage.register_depends_on(dependend)
                 return config
 
-            self._config[str(stage)] = func
+            self._config_funcs[str(stage)] = wrapper
             return wrapper
 
         return _inner
@@ -193,6 +203,22 @@ class Engine:
 
     def get_stages(self):
         return self._stages
+
+    def configure(self):
+        for name, config_func in self._config_funcs.items():
+            if not callable(config_func):
+                config_generator = config_func
+            else:
+                config_func()
+                config_generator = self._config_funcs[name]
+            self._consume_config_generator(config_generator)
+
+    def _consume_config_generator(self, config_generator):
+        while True:
+            try:
+                next(config_generator)
+            except StopIteration:
+                break
 
 
 def get_config_from_stage(root, stage):

@@ -12,7 +12,9 @@ def horst():
     build_py = path.abspath(path.join(path.dirname(__file__), "..", "..", "build.py"))
     horst = Horst("")
     horst._invalidate()
-    yield Horst(build_py)
+    horst = Horst(build_py)
+    horst.configure()
+    yield horst
     horst._invalidate()
 
 

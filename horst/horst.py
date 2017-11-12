@@ -49,6 +49,9 @@ class Horst(metaclass=Singleton):
             'stages': self.root._stages,
         }
 
+    def configure(self):
+        self.root.configure()
+
 
 def get_project_path():
     return Horst("").project_path

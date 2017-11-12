@@ -42,8 +42,8 @@ def virtualenv(config=None):
         config = {".env": {"python": "python"}}
     for name, config in config.items():
         config = {'name': name, **config}
+    yield config, None
     _create_environment(config)
-    return config, None
 
 
 @root.register(env / create)
@@ -77,5 +77,5 @@ def dependencies(install=[], build=[], test=[], versions=[], environment=None):
         test=test,
         versions=versions
     )
+    yield deps, None
     _update_environment(deps, environment)
-    return deps, None

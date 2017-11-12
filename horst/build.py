@@ -3,7 +3,7 @@ import subprocess
 from setuptools import find_packages
 
 from horst import get_horst, get_project_path
-from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand, DeleteFileOrFolder
+from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand, DeleteFileOrFolder, StageConfigError
 from .rules import root, build, create_setup, update_setup, run_setup, configure_or_default, depends_on_stage, \
     get_config_from_stage, env, setup
 from os import path
@@ -35,10 +35,12 @@ def from_git_config(*values):
 
 
 @root.config(build)
-def package(name, version, description, long_description=None, url=None, packages=None):
+def package(name=None, version=None, description=None, long_description=None, url=None, packages=None):
+    if name and version and description is None:
+        yield StageConfigError("<name, version, description> must be specfied via <package>")
+
     long_description = string_or_return_empty_one(long_description)
     url = string_or_return_empty_one(url)
-    install_dependencies = get_config_from_stage(root, env)
     project_path = get_project_path()
     packages = configure_or_default(packages, find_packages)
     path_to_setup = path.join(project_path, "setup.py")
@@ -49,13 +51,14 @@ def package(name, version, description, long_description=None, url=None, package
         long_description=long_description,
         url=url,
         packages=packages,
-        install_requires=install_dependencies["install"]
     )
+    yield setup_config, depends_on_stage(root, ["test:build", "test:all", "test"])
+    install_dependencies = get_config_from_stage(root, env)
+    setup_config.update({'install_requires': install_dependencies["install"]})
     _create_setup(path_to_setup)
     _update_setup(path_to_setup, setup_config)
     _run_bdist_wheel()
     _clean_install_fragments()
-    return setup_config, depends_on_stage(root, ["test:build", "test:all", "test"])
 
 
 def string_or_return_empty_one(value):

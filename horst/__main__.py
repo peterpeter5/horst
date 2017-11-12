@@ -38,6 +38,7 @@ class MyCli(click.MultiCommand):
     def __init__(self, build_file="", *args, **kwargs):
         if os.path.exists(build_file):
             exec_file(build_file)
+        get_horst().root.configure()
         super(MyCli, self).__init__(*args, **kwargs)
 
     def list_commands(self, ctx):

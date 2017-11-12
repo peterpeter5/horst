@@ -112,7 +112,9 @@ def test_pytest_coverage_with_full_config():
 def horst():
     horst = Horst("")
     horst._invalidate()
-    return Horst(__file__, "package_name")
+    horst = Horst(__file__, "package_name")
+    horst.configure()
+    return horst
 
 
 def test_pytest_without_config(horst):
@@ -143,9 +145,10 @@ def test_testconfigure_with_default_test_stages():
     assert "test" in root.get_stages()
 
 
-def test_testconfigure_with_multiple_test_stages():
+def test_testconfigure_with_multiple_test_stages(horst):
     integration_test_config = pytest_config(folders="integrationtest")
     config = test(integrationtest=integration_test_config)
+    horst.configure()
     unittest_config = pytest_config()
     assert is_subset({"unittest": unittest_config, "integrationtest": integration_test_config}, config)
     stages = root.get_stages()

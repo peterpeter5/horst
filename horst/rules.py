@@ -2,6 +2,12 @@ from functools import wraps, reduce
 from itertools import chain
 
 
+class _Unit:
+
+    def __truediv__(self, other):
+        return other
+
+
 class _Stage:
 
     def __init__(self, name=None):
@@ -60,6 +66,8 @@ class _Route:
 
     def __init__(self, node):
         self._chain = node
+        self.before = _Unit()
+        self.after = _Unit()
 
     def __truediv__(self, other):
         if isinstance(other, _Stage):
@@ -67,6 +75,8 @@ class _Route:
             return self
         elif isinstance(other, _Route):
             return reduce(lambda left, right: left / right, chain(self.to_stages(), other.to_stages()))
+        elif isinstance(other, _Unit):
+            return self
         else:
             raise TypeError("division between %s and %s is not definined" % (
                 self.__class__, other.__class__))
@@ -82,6 +92,7 @@ class _Route:
     def task_transformer(self, func):
         for stage in self:
             stage.task_transformer(func)
+        return self
 
     @property
     def tasks(self):
@@ -151,20 +162,24 @@ class Engine:
             def wrapper(*args, **kwargs):
                 config = func(*args, **kwargs)
                 config, dependend = config
-                self._config[func.__name__] = config
+                self._config[str(stage)] = config
                 stage.register_depends_on(dependend)
                 return config
 
+            self._config[str(stage)] = func
             return wrapper
 
         return _inner
 
-    def register(self, stages, route=None):
+    def register(self, stages, route=None, before=_Unit(), after=_Unit()):
         def _inner(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
                 tasks = func(*args, **kwargs)
                 stages.register_tasks(tasks)
+                stages.before = before
+                stages.after = after
+
                 name = str(stages) if route is None else route.replace("/", ":")
                 self._stages[name] = stages
                 return list(tasks) if tasks is not None else None
@@ -180,6 +195,15 @@ class Engine:
         return self._stages
 
 
+def get_config_from_stage(root, stage):
+    result = root.get_config_for(str(stage))
+    if not result or not callable(result):
+        return result
+    else:
+        result, _ = result()
+        return result
+
+
 def depends_on_stage(root, path_list):
     def find_best_suitable_stage():
         stages = root.get_stages()
@@ -193,11 +217,16 @@ def depends_on_stage(root, path_list):
 
 
 def finalize_stage(stage_route, task_transformation=lambda x: x):
-    stage_route.task_transformer(task_transformation)
+
+    def _before_and_after(stage_route, transformer):
+        return (stage_route.before / stage_route / stage_route.after).task_transformer(transformer)
+
     if stage_route.pending:
-        return finalize_stage(stage_route.depends_on, task_transformation) % stage_route
+        return finalize_stage(stage_route.depends_on, task_transformation) % _before_and_after(
+            stage_route, task_transformation
+        )
     else:
-        return stage_route
+        return _before_and_after(stage_route, task_transformation)
 
 
 def configure_or_default(variable, default_config):
@@ -226,6 +255,7 @@ test = TestingStage("test")
 unittest = TestingStage("unittest")
 
 build = Build("build")
+setup = Build("setup")
 create_setup = Build("create_setup")
 update_setup = Build("update_setup")
 run_setup = Build("build_wheel")

@@ -25,6 +25,7 @@ def setup_config():
         long_description="long",
         url="/url/to",
         packages=[],
+        install_requires=[""]
     )
 
 

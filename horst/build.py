@@ -4,7 +4,8 @@ from setuptools import find_packages
 
 from horst import get_horst, get_project_path
 from horst.effects import EffectBase, CreateFile, UpdateFile, RunCommand, DeleteFileOrFolder
-from .rules import root, build, create_setup, update_setup, run_setup, clean_up, configure_or_default, depends_on_stage
+from .rules import root, build, create_setup, update_setup, run_setup, configure_or_default, depends_on_stage, \
+    get_config_from_stage, env, setup
 from os import path
 
 _here = path.dirname(__file__)
@@ -37,7 +38,7 @@ def from_git_config(*values):
 def package(name, version, description, long_description=None, url=None, packages=None):
     long_description = string_or_return_empty_one(long_description)
     url = string_or_return_empty_one(url)
-
+    install_dependencies = get_config_from_stage(root, env)
     project_path = get_project_path()
     packages = configure_or_default(packages, find_packages)
     path_to_setup = path.join(project_path, "setup.py")
@@ -48,6 +49,7 @@ def package(name, version, description, long_description=None, url=None, package
         long_description=long_description,
         url=url,
         packages=packages,
+        install_requires=install_dependencies["install"]
     )
     _create_setup(path_to_setup)
     _update_setup(path_to_setup, setup_config)
@@ -60,12 +62,12 @@ def string_or_return_empty_one(value):
     return value if isinstance(value, str) else ""
 
 
-@root.register(build / create_setup)
+@root.register(setup / create_setup)
 def _create_setup(setup_path):
     return [CreateFile(setup_path, " ")] if not path.exists(setup_path) else []
 
 
-@root.register(build / create_setup / update_setup, "build/update_setup")
+@root.register(setup / create_setup / update_setup, "build/update/setup")
 def _update_setup(setup_path, config):
     # TODO sanity_check
     content = _render_setuppy(config)

@@ -8,5 +8,6 @@ setup(
     description="Horst is a simple build-automation-tool for python packages",
     long_description="",
     url="",
-    packages=['horst', 'horst.runner', 'horst.integration_test', 'horst.tests']
+    packages=['horst', 'horst.runner', 'horst.integration_test', 'horst.tests'],
+    install_requires=['click', 'jinja2', 'bumpversion', 'pytest-cov', 'pytest', 'virtualenv'],
 )

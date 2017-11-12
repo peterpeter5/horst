@@ -1,4 +1,5 @@
-from ..rules import Engine, _Stage, env, create, update, depends_on_stage, finalize_stage, _RouteChain
+from ..rules import Engine, _Stage, env, create, update, depends_on_stage, finalize_stage, _RouteChain, \
+    get_config_from_stage
 import pytest
 
 
@@ -20,8 +21,8 @@ _first_stack_stage = A() / B()
 _second_stack_stage = C()
 
 
-@rules.config(A(""))
-def config_smthng(a, b):
+@rules.config(A("conf"))
+def config_smthng(a=0, b=0):
     return [a, b], None
 
 
@@ -43,7 +44,26 @@ def tasks_with_custom_route():
 
 def test_config_function_reslut_is_saved_in_engine():
     config_smthng("a", 2)
-    assert rules._config == {'config_smthng': ['a', 2]}
+    assert rules._config == {'conf': ['a', 2]}
+
+
+def test_config_function_is_saved_in_engine_as_func_when_not_called():
+    def a_func():
+        return 1
+
+    rules.config(B("hello"))(a_func)
+    assert rules._config["hello"].__name__ == a_func.__name__
+
+
+def test_get_config_from_stage():
+    @rules.config(B("cello"))
+    def a_func(a=0):
+        return a, None
+
+    assert get_config_from_stage(rules, B()) == {}
+    assert get_config_from_stage(rules, "cello") == 0
+    a_func(3)
+    assert get_config_from_stage(rules, "cello") == 3
 
 
 def test_stage_div_protocol_with_wrong_types():
@@ -154,6 +174,39 @@ def test_finalize_stage():
     stage_a.register_depends_on(cb_stage)
     route = stage_a / B()
     assert str(finalize_stage(route)) == str([str(C() / B()), str(A() / B())])
+
+
+def test_finalize_stage_with_before_and_after():
+    ab = A() / B()
+
+    @rules.register(ab, before=C(), after=B())
+    def route():
+        return ["pass"]
+    route()
+
+    result = finalize_stage(ab)
+    assert str(result) == "C:A:B:B"
+
+
+def test_finalize_stage_with_before_after_and_depends_on():
+    a_start = A("start")
+    ab = a_start / B()
+
+    @rules.config(a_start)
+    def conf():
+        return None, depends_on_stage(rules, ["C:C"])
+
+    @rules.register(C() / C())
+    def c():
+        return [None]
+
+    @rules.register(ab, before=C(), after=B())
+    def route():
+        return ["pass"]
+    conf()
+    route()
+    c()
+    assert str(finalize_stage(ab)) == "['C:C', 'C:start:B:B']"
 
 
 def test_one_can_iter_stagenames_tasks_over_routes():

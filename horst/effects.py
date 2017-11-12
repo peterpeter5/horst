@@ -109,3 +109,8 @@ class RunOption:
 
     def __repr__(self):
         return str(self)
+
+
+class Printer(EffectBase):
+    def __init__(self, message):
+        self.message = message

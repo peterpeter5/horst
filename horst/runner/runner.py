@@ -1,7 +1,7 @@
 import shutil
 from functools import singledispatch
 from horst import get_project_path
-from horst.effects import DryRun, RunCommand, UpdateFile, CreateFile, DeleteFileOrFolder
+from horst.effects import DryRun, RunCommand, UpdateFile, CreateFile, DeleteFileOrFolder, Printer
 import warnings
 import subprocess
 from horst.testing import RunPyTest
@@ -94,6 +94,10 @@ def _(action, printer):
     except (FileNotFoundError, PermissionError) as error:
         return Error(repr(error))
 
+
+@execute.register(Printer)
+def _(action, printer):
+    return Ok(action.message)
 
 def execute_stage(stage, printer):
     """

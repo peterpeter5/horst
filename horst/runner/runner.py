@@ -1,7 +1,7 @@
 import shutil
 from functools import singledispatch
 from horst import get_project_path
-from horst.effects import DryRun, RunCommand, UpdateFile, CreateFile, DeleteFileOrFolder, Printer
+from horst.effects import DryRun, RunCommand, UpdateFile, CreateFile, DeleteFileOrFolder, Printer, NoOperation
 import warnings
 import subprocess
 from horst.testing import RunPyTest
@@ -9,13 +9,6 @@ from functools import partial
 from .result import Ok, Error, UpToDate, Dry
 from os import path
 import os
-
-
-class _NoOp:
-    verbose = False
-
-    def __init__(self, stage_name):
-        self.stage_name = stage_name
 
 
 @singledispatch
@@ -29,7 +22,7 @@ def _(action, printer):
     return Dry(str(action.__display__()))
 
 
-@execute.register(_NoOp)
+@execute.register(NoOperation)
 def _(action, printer):
     return UpToDate("")
 
@@ -99,6 +92,7 @@ def _(action, printer):
 def _(action, printer):
     return Ok(action.message)
 
+
 def execute_stage(stage, printer):
     """
     :type stage: horst.rules._Route
@@ -109,7 +103,7 @@ def execute_stage(stage, printer):
     stop_stage = False
     for name, tasks in stage.iter_stagename_task():
         printer.print_stage(name)
-        parallel_tasks = tasks if tasks else [_NoOp(name)]
+        parallel_tasks = tasks if tasks else [NoOperation(name)]
         # TODO execute in parallel!
         for single_task in parallel_tasks:
             result = execute(single_task, printer=printer)

@@ -49,7 +49,8 @@ test(
     build=pytest(coverage=pytest_coverage(
         report=["html", "term"],
         min=97
-    ))
+    )),
+    release=pytest(),
 )
 
 # check(

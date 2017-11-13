@@ -82,7 +82,7 @@ def _update_setup(setup_path, config):
 
 @root.register(build / create_setup / update_setup / run_setup, "build/wheel")
 def _run_bdist_wheel(build_options=None, clean_intermediates=True):
-    build_options = build_options if build_options is not None else build_options
+    build_options = build_options if build_options is not None else []
     clean_up = [] if not clean_intermediates else _clean_install_fragments()
 
     return [RunCommand("python", ["setup.py", "bdist_wheel"] + build_options)] + clean_up

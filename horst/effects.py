@@ -125,3 +125,13 @@ class RunOption:
 class Printer(EffectBase):
     def __init__(self, message):
         self.message = message
+
+
+class NoOperation:
+    verbose = False
+
+    def __init__(self, stage_name):
+        self.stage_name = stage_name
+
+    def __display__(self):
+        return self.stage_name

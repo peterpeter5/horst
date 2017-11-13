@@ -3,7 +3,7 @@ import tempfile
 from os import path
 import os
 
-from horst import geabandoned_path, get_horst
+from horst import get_horst
 from horst.effects import RunOption, Printer, CopyTree, NoOperation
 from horst.python import CreateEnv, UpdateEnv
 from .rules import root, configure_or_default, depends_on_stage, test_release, get_config_from_stage, env, create, \

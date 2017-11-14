@@ -83,19 +83,25 @@ many great libraries like:
     - virtualenv
     - ...
 
-  ## what it is NOT
+Horst is extensible and can be used as a task-runner, BUT there
+are better projects out there, which mostly focus on this part
+and do this job with a smaller dependency-footprint. Said this,
+the biggest difference between HORST and others, is that it tries
+to come with batteries-fully-included.
+
+## what it is NOT
 
   1. small footprint: you NEVER want to have Horst as a production
   dependency! There are to many downstream dependencies from Horst
 
-  2. a new build-system: unlike conda or others the main goal of horst is
+  2. a new build-system: unlike conda or others, the main goal of horst is
   to provide a good "standard" - process for developing and releasing
   packages. Horst simply orchestreates other "standard" - tools
 
   3. The one true way to do it: At the moment Horst simply refelects
   what I believe is a good process. You may not agree with me, thats
   fine. Horst tries to rely on as many "pythonic" - conventions as
-  possible, but it is opinioneted. There are ways to change Horst
+  possible, but it is opinionated. There are ways to change Horst
   behaviour, but sometimes it may be easier to stick to the Horst-way
 
 
@@ -158,6 +164,30 @@ deploying your package
 all functions should configure a effect / task on a stage.
 all registered conf-function will be executed during start-up
 (everytime)
+
+A configuration must be bound to a stage via decorator
+```
+@root.config(test)
+def test_configuration(folder=None):
+    # configuration phase
+    yield folder, None
+    # creation phase
+    _creator_execute_tests_effect(folder)
+```
+the configuration - function is divided (by the yield-statement) in two phases.
+during the configuration-phase the function arguments, or some side-effects
+which are needed for the next phase are evaluated. This
+data is then yielded back to horst as a global configuration
+which can be queried by all other stages / routes. The second
+return value is either ```None``` or a description of routes this
+stage should depend on (more on this later).
+After the configuration is yielded, the function will return and
+horst garantees that all other config-functions will have yielded
+their data, which can then be queried. After the yield you should
+call all registered routes which you want to configure and make
+available at the cli.
+
+
 
 
 ### Stage
